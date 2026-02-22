@@ -321,9 +321,13 @@ export default function App() {
         @media (max-width: 768px) {
           .app-shell { display: block; }
           .sidebar { display: none; }
-          .main-content { margin-right: 0; }
+          .main-content {
+            margin-right: 0;
+            margin-left: 0;
+            width: 100vw;
+          }
           .topbar { display: none; }
-          .page-body { padding: 16px 13px 90px; max-width: 100%; }
+          .page-body { padding: 16px 16px 90px; max-width: 100%; }
           .mobile-header { display: block; }
           .mobile-tabbar {
             display: flex; position: fixed; bottom: 0; left: 0; right: 0;
