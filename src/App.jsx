@@ -43,40 +43,36 @@ function useNotifications() {
   const [permission, setPermission] = useState(
     typeof Notification !== "undefined" ? Notification.permission : "default"
   );
+  const [muted, setMuted] = useState(false);
   const [toasts, setToasts] = useState([]);
   const notifiedRef = useRef(new Set());
 
   const requestPermission = useCallback(async () => {
+    if (permission === "granted") {
+      setMuted(prev => !prev);
+      return;
+    }
     if (typeof Notification === "undefined") return;
     const r = await Notification.requestPermission();
     setPermission(r);
-  }, []);
+  }, [permission]);
 
   const addToast = useCallback((msg, type = "info") => {
+    if (muted) return;
     const id = Date.now() + Math.random();
     setToasts(prev => [...prev, { id, msg, type }]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4500);
-  }, []);
+  }, [muted]);
 
   const notify = useCallback((title, body, type = "info") => {
+    if (muted) return;
     addToast(body ? `${title}: ${body}` : title, type);
     if (permission === "granted") {
       try { new Notification(title, { body, icon: "🏡" }); } catch {}
     }
-  }, [permission, addToast]);
+  }, [permission, muted, addToast]);
 
-  const checkUpcoming = useCallback((events) => {
-    const now = new Date();
-    events.forEach(ev => {
-      const diff = ev.date - now;
-      const key = `ev-${ev.id}`;
-      if (diff > 0 && diff < 24 * 60 * 60 * 1000 && !notifiedRef.current.has(key)) {
-        notifiedRef.current.add(key);
-      }
-    });
-  }, [notify]);
-
-  return { permission, requestPermission, notify, toasts, checkUpcoming };
+  return { permission, muted, requestPermission, notify, toasts };
 }
 
 /* ─── TOAST UI ─── */
@@ -119,7 +115,7 @@ function ToastContainer({ toasts }) {
 export default function App() {
   const today = new Date();
   const [tab, setTab] = useState("home");
-  const { permission, requestPermission, notify, toasts } = useNotifications();
+  const { permission, muted, requestPermission, notify, toasts } = useNotifications();
 
   const [assignments, setAssignments] = useState([]);
   const [shopping, setShopping] = useState([]);
@@ -182,26 +178,42 @@ export default function App() {
 
   /* ── DB actions: assignments ── */
   async function addAssignment(item) {
+    const tempId = Date.now();
+    const optimistic = { ...item, id: tempId };
+    setAssignments(prev => [...prev, optimistic]);
     const { data } = await supabase.from("assignments").insert([item]).select().single();
-    if (data) notify("משימה חדשה נוספה 📋", `${data.title} · ${URGENCY[data.urgency]?.label}`, "info");
+    if (data) {
+      setAssignments(prev => prev.map(a => a.id === tempId ? data : a));
+      notify("משימה חדשה נוספה 📋", `${data.title} · ${URGENCY[data.urgency]?.label}`, "info");
+    }
   }
   async function toggleAssignment(id) {
     const item = assignments.find(a => a.id === id);
-    if (item) await supabase.from("assignments").update({ approved: !item.approved }).eq("id", id);
+    if (!item) return;
+    setAssignments(prev => prev.map(a => a.id === id ? { ...a, approved: !a.approved } : a));
+    await supabase.from("assignments").update({ approved: !item.approved }).eq("id", id);
   }
   async function removeAssignment(id) {
+    setAssignments(prev => prev.filter(a => a.id !== id));
     await supabase.from("assignments").delete().eq("id", id);
   }
 
   /* ── DB actions: shopping ── */
   async function addShoppingItem(item) {
-    await supabase.from("shopping").insert([item]);
+    const tempId = Date.now();
+    const optimistic = { ...item, id: tempId };
+    setShopping(prev => [...prev, optimistic]);
+    const { data } = await supabase.from("shopping").insert([item]).select().single();
+    if (data) setShopping(prev => prev.map(s => s.id === tempId ? data : s));
   }
   async function toggleShopping(id) {
     const item = shopping.find(s => s.id === id);
-    if (item) await supabase.from("shopping").update({ approved: !item.approved }).eq("id", id);
+    if (!item) return;
+    setShopping(prev => prev.map(s => s.id === id ? { ...s, approved: !s.approved } : s));
+    await supabase.from("shopping").update({ approved: !item.approved }).eq("id", id);
   }
   async function removeShopping(id) {
+    setShopping(prev => prev.filter(s => s.id !== id));
     await supabase.from("shopping").delete().eq("id", id);
   }
   async function addQuickItem(qi) {
@@ -210,14 +222,19 @@ export default function App() {
 
   /* ── DB actions: events ── */
   async function addEvent(ev) {
-    await supabase.from("events").insert([{ ...ev, date: ev.date.toISOString() }]);
+    const tempId = Date.now();
+    const optimistic = { ...ev, id: tempId };
+    setEvents(prev => [...prev, optimistic]);
+    const { data } = await supabase.from("events").insert([{ ...ev, date: ev.date.toISOString() }]).select().single();
+    if (data) setEvents(prev => prev.map(e => e.id === tempId ? parseEvent(data) : e));
   }
   async function removeEvent(id) {
+    setEvents(prev => prev.filter(e => e.id !== id));
     await supabase.from("events").delete().eq("id", id);
   }
 
   const sp = {
-    assignments, shopping, events, today, notify, loading,
+    assignments, shopping, events, today, notify, loading, muted,
     addAssignment, toggleAssignment, removeAssignment,
     addShoppingItem, toggleShopping, removeShopping, addQuickItem,
     addEvent, removeEvent,
@@ -249,6 +266,11 @@ export default function App() {
         .sidebar-btn:hover { background: rgba(255,255,255,0.12) !important; }
         .sidebar-btn.active { background: rgba(255,255,255,0.18) !important; }
         input, select { outline: none; font-family: Heebo, sans-serif; }
+        button { font-family: Heebo, sans-serif; }
+        .urgency-group { display: flex; gap: 8px; justify-content: flex-start; flex-wrap: nowrap; }
+        .urgency-btn { width: 90px !important; flex: 0 0 90px !important; min-width: 0; }
+        .check-circle { width: 27px !important; height: 27px !important; flex: 0 0 27px !important; border-radius: 50% !important; }
+        .check-square { width: 27px !important; height: 27px !important; flex: 0 0 27px !important; border-radius: 8px !important; }
         @keyframes fadeUp  { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
         @keyframes slideIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
         @keyframes toastIn { from { opacity:0; transform:translateY(-12px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
@@ -374,13 +396,15 @@ export default function App() {
           <div className="sidebar-footer">
             <button className="hov" onClick={requestPermission} style={{
               width:"100%", padding:"10px 16px", borderRadius:12,
-              background: permission==="granted" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)",
+              background: permission==="granted" && !muted ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)",
               border:"1.5px solid rgba(255,255,255,0.2)",
               color:"rgba(255,255,255,0.8)", fontFamily:"inherit", fontSize:12, fontWeight:600,
               cursor:"pointer", display:"flex", alignItems:"center", gap:8,
             }}>
-              <span style={{ fontSize:16 }}>{permission==="granted" ? "🔔" : "🔕"}</span>
-              {permission==="granted" ? "התראות פעילות" : "הפעל התראות"}
+              <span style={{ fontSize:16 }}>
+                {permission !== "granted" ? "🔕" : muted ? "🔕" : "🔔"}
+              </span>
+              {permission !== "granted" ? "הפעל התראות" : muted ? "התראות מושתקות" : "התראות פעילות"}
             </button>
           </div>
         </aside>
@@ -408,8 +432,8 @@ export default function App() {
                 fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
                 display:"flex", alignItems:"center", gap:4,
               }}>
-                <span>{permission==="granted" ? "🔔" : "🔕"}</span>
-                {permission==="granted" ? "פעיל" : "התראות"}
+                <span>{permission !== "granted" ? "🔕" : muted ? "🔕" : "🔔"}</span>
+                {permission !== "granted" ? "התראות" : muted ? "מושתק" : "פעיל"}
               </button>
             </div>
           </div>
@@ -510,9 +534,9 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
               borderRight: `4px solid ${URGENCY[a.urgency].color}`,
               animation: `fadeUp 0.3s ${i*0.07}s ease both`,
             }}>
-              <button className="hov" onClick={() => quickDone(a.id)} style={{
-                width: 25, height: 25, borderRadius: "50%", background: "transparent",
-                border: `2px solid ${C.border}`, flexShrink: 0, cursor: "pointer",
+              <button className="hov check-circle" onClick={() => quickDone(a.id)} style={{
+                background: "transparent",
+                border: `2px solid ${C.border}`, cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }} title="סמן כהושלם" />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -538,9 +562,9 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
               border: `1.5px solid ${C.border}`,
               animation: `fadeUp 0.3s ${i*0.07}s ease both`,
             }}>
-              <button className="hov" onClick={() => quickBought(s.id)} style={{
-                width: 25, height: 25, borderRadius: 7, background: "transparent",
-                border: `2px solid ${C.border}`, flexShrink: 0, cursor: "pointer",
+              <button className="hov check-square" onClick={() => quickBought(s.id)} style={{
+                background: "transparent",
+                border: `2px solid ${C.border}`, cursor: "pointer",
               }} title="סמן כנרכש" />
               <div style={{ flex: 1 }}>
                 <span style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{s.item}</span>
@@ -642,15 +666,15 @@ function AssignmentsTab({ assignments, showAddA, setShowAddA, newA, setNewA, not
           <input type="date" value={newA.due} onChange={e=>setNewA({...newA,due:e.target.value})} style={IS} />
           <div>
             <div style={{ fontSize:12, fontWeight:700, color:C.textMuted, marginBottom:7 }}>רמת דחיפות</div>
-            <div style={{ display:"flex", gap:8, justifyContent:"flex-start" }}>
+            <div className="urgency-group">
               {Object.entries(URGENCY).map(([key,u])=>(
-                <button key={key} className="hov" onClick={()=>setNewA({...newA,urgency:key})} style={{
-                  width:90, padding:"9px 4px", borderRadius:11, cursor:"pointer",
+                <button key={key} className="hov urgency-btn" onClick={()=>setNewA({...newA,urgency:key})} style={{
+                  padding:"9px 4px", borderRadius:11, cursor:"pointer",
                   background: newA.urgency===key ? u.bg : C.card,
                   border:`2px solid ${newA.urgency===key ? u.color : C.border}`,
-                  fontFamily:"inherit", fontSize:12, fontWeight:700, color:u.color,
+                  fontSize:12, fontWeight:700, color:u.color,
                   display:"flex", flexDirection:"column", alignItems:"center", gap:3,
-                  transition:"all 0.16s", flexShrink:0,
+                  transition:"all 0.16s",
                 }}>
                   <span style={{ fontSize:18 }}>{u.icon}</span>
                   {u.label}
@@ -687,12 +711,11 @@ function AssignCard({ item, onToggle, onRemove, delay=0 }) {
       animation:`fadeUp 0.3s ${delay}s ease both`,
       transition:"box-shadow 0.2s",
     }}>
-      <button className="hov" onClick={()=>onToggle(item.id)} style={{
-        width:27, height:27, borderRadius:"50%",
+      <button className="hov check-circle" onClick={()=>onToggle(item.id)} style={{
         background: item.approved ? C.secondary : "transparent",
         border:`2px solid ${item.approved ? C.secondary : C.border}`,
         display:"flex", alignItems:"center", justifyContent:"center",
-        color:"#fff", fontSize:13, flexShrink:0, cursor:"pointer",
+        color:"#fff", fontSize:13, cursor:"pointer",
       }}>{item.approved ? "✓" : ""}</button>
 
       <div style={{ flex:1, minWidth:0 }}>
@@ -939,12 +962,11 @@ function ShopCard({ item, onToggle, onRemove, delay=0 }) {
       border:`1.5px solid ${item.approved?C.secondaryLight:C.border}`,
       animation:`fadeUp 0.3s ${delay}s ease both`, transition:"box-shadow 0.2s",
     }}>
-      <button className="hov" onClick={()=>onToggle(item.id)} style={{
-        width:27, height:27, borderRadius:8,
+      <button className="hov check-square" onClick={()=>onToggle(item.id)} style={{
         background:item.approved?C.secondary:"transparent",
         border:`2px solid ${item.approved?C.secondary:C.border}`,
         display:"flex", alignItems:"center", justifyContent:"center",
-        color:"#fff", fontSize:13, flexShrink:0, cursor:"pointer",
+        color:"#fff", fontSize:13, cursor:"pointer",
       }}>{item.approved?"✓":""}</button>
       {item.icon && <span style={{ fontSize:22, flexShrink:0 }}>{item.icon}</span>}
       <div style={{ flex:1 }}>
