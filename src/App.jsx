@@ -534,10 +534,11 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
               borderRight: `4px solid ${URGENCY[a.urgency].color}`,
               animation: `fadeUp 0.3s ${i*0.07}s ease both`,
             }}>
-              <button className="hov check-circle" onClick={() => quickDone(a.id)} style={{
-                background: "transparent",
-                border: `2px solid ${C.border}`, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
+              <button className="hov" onClick={() => quickDone(a.id)} style={{
+                width:25, height:25, minWidth:25, maxWidth:25, borderRadius:"50%",
+                background:"transparent", border:`2px solid ${C.border}`,
+                flexShrink:0, cursor:"pointer", padding:0,
+                display:"flex", alignItems:"center", justifyContent:"center",
               }} title="סמן כהושלם" />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</div>
@@ -562,9 +563,10 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
               border: `1.5px solid ${C.border}`,
               animation: `fadeUp 0.3s ${i*0.07}s ease both`,
             }}>
-              <button className="hov check-square" onClick={() => quickBought(s.id)} style={{
-                background: "transparent",
-                border: `2px solid ${C.border}`, cursor: "pointer",
+              <button className="hov" onClick={() => quickBought(s.id)} style={{
+                width:25, height:25, minWidth:25, maxWidth:25, borderRadius:7,
+                background:"transparent", border:`2px solid ${C.border}`,
+                flexShrink:0, cursor:"pointer", padding:0,
               }} title="סמן כנרכש" />
               <div style={{ flex: 1 }}>
                 <span style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{s.item}</span>
@@ -711,11 +713,12 @@ function AssignCard({ item, onToggle, onRemove, delay=0 }) {
       animation:`fadeUp 0.3s ${delay}s ease both`,
       transition:"box-shadow 0.2s",
     }}>
-      <button className="hov check-circle" onClick={()=>onToggle(item.id)} style={{
+      <button className="hov" onClick={()=>onToggle(item.id)} style={{
+        width:27, height:27, minWidth:27, maxWidth:27, borderRadius:"50%",
         background: item.approved ? C.secondary : "transparent",
         border:`2px solid ${item.approved ? C.secondary : C.border}`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        color:"#fff", fontSize:13, cursor:"pointer",
+        display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
+        color:"#fff", fontSize:13, cursor:"pointer", padding:0,
       }}>{item.approved ? "✓" : ""}</button>
 
       <div style={{ flex:1, minWidth:0 }}>
@@ -962,11 +965,12 @@ function ShopCard({ item, onToggle, onRemove, delay=0 }) {
       border:`1.5px solid ${item.approved?C.secondaryLight:C.border}`,
       animation:`fadeUp 0.3s ${delay}s ease both`, transition:"box-shadow 0.2s",
     }}>
-      <button className="hov check-square" onClick={()=>onToggle(item.id)} style={{
+      <button className="hov" onClick={()=>onToggle(item.id)} style={{
+        width:27, height:27, minWidth:27, maxWidth:27, borderRadius:8,
         background:item.approved?C.secondary:"transparent",
         border:`2px solid ${item.approved?C.secondary:C.border}`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        color:"#fff", fontSize:13, cursor:"pointer",
+        display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
+        color:"#fff", fontSize:13, cursor:"pointer", padding:0,
       }}>{item.approved?"✓":""}</button>
       {item.icon && <span style={{ fontSize:22, flexShrink:0 }}>{item.icon}</span>}
       <div style={{ flex:1 }}>
