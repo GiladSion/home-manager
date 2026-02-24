@@ -129,7 +129,7 @@ export default function App() {
   const [showAddE, setShowAddE] = useState(false);
   const [newA, setNewA] = useState({ title: "", assignee: "ואלרי", due: "", urgency: "medium" });
   const [newS, setNewS] = useState({ item: "", qty: "" });
-  const [newE, setNewE] = useState({ title: "", date: "", category: "גלעד" });
+  const [newE, setNewE] = useState({ title: "", date: "", time: "", category: "גלעד" });
 
   /* ── helpers to parse DB rows ── */
   function parseEvent(row) {
@@ -227,8 +227,7 @@ export default function App() {
     setEvents(prev => [...prev, optimistic]);
     const { data } = await supabase.from("events").insert([{ ...ev, date: ev.date.toISOString() }]).select().single();
     if (data) setEvents(prev => prev.map(e => e.id === tempId ? parseEvent(data) : e));
-  }
-  async function removeEvent(id) {
+  }  async function removeEvent(id) {
     setEvents(prev => prev.filter(e => e.id !== id));
     await supabase.from("events").delete().eq("id", id);
   }
@@ -585,6 +584,8 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
           ? <EmptyMsg text="אין אירועים קרובים 📭" />
           : upcomingEvents.map((ev, i) => {
             const color = CATEGORY_COLORS[ev.category] || C.accent;
+            const DAYS_FULL = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+            const dayName = ev.date instanceof Date ? DAYS_FULL[ev.date.getDay()] : "";
             return (
               <div key={ev.id} style={{
                 background: C.card, borderRadius: 12, padding: "11px 13px", marginBottom: 8,
@@ -596,7 +597,7 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{ev.title}</div>
                   <div style={{ display: "flex", gap: 8, marginTop: 3, alignItems: "center" }}>
-                    <span style={{ color: C.textMuted, fontSize: 11 }}>📅 {formatDate(ev.date)}</span>
+                    <span style={{ color: C.textMuted, fontSize: 11 }}>📅 יום {dayName}، {formatDate(ev.date)}{ev.time ? ` · 🕐 ${ev.time}` : ""}</span>
                     <span style={{ background:`${color}22`, color, fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:5 }}>
                       {ev.category}
                     </span>
@@ -1003,9 +1004,9 @@ function CalendarTab({ events, calendarDate, setCalendarDate, calView, setCalVie
   function addEvent() {
     if (!newE.title.trim() || !newE.date) return;
     const [y,m,d] = newE.date.split("-").map(Number);
-    const ev = { title:newE.title, date:new Date(y,m-1,d), category:newE.category };
+    const ev = { title:newE.title, date:new Date(y,m-1,d), time:newE.time||"", category:newE.category };
     addEventDB(ev);
-    setNewE({ title:"", date:"", category:"גלעד" });
+    setNewE({ title:"", date:"", time:"", category:"גלעד" });
     setShowAddE(false);
   }
 
@@ -1029,6 +1030,7 @@ function CalendarTab({ events, calendarDate, setCalendarDate, calView, setCalVie
         <AddForm onAdd={addEvent} onCancel={()=>setShowAddE(false)}>
           <input value={newE.title} onChange={e=>setNewE({...newE,title:e.target.value})} placeholder="שם האירוע" style={IS} />
           <input type="date" value={newE.date} onChange={e=>setNewE({...newE,date:e.target.value})} style={IS} />
+          <input type="time" value={newE.time} onChange={e=>setNewE({...newE,time:e.target.value})} style={{...IS, direction:"ltr", textAlign:"right"}} placeholder="שעה (אופציונלי)" />
           <select value={newE.category} onChange={e=>setNewE({...newE,category:e.target.value})} style={IS}>
             {["גלעד","ואלרי","דין","מילה","נוגה","ימי הולדת","אחר"].map(c=><option key={c}>{c}</option>)}
           </select>
@@ -1160,6 +1162,9 @@ function EventCard({ event, onRemove, showDate }) {
             <span style={{ color:C.textMuted, fontSize:12 }}>
               📅 יום {dayName}، {formatDate(event.date)}
             </span>
+          )}
+          {event.time && (
+            <span style={{ color:C.textMuted, fontSize:12 }}>🕐 {event.time}</span>
           )}
           <span style={{ background:`${color}22`, color, fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:6 }}>
             {event.category}
