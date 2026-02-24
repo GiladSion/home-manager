@@ -996,6 +996,8 @@ function ShopCard({ item, onToggle, onRemove, delay=0 }) {
 function CalendarTab({ events, calendarDate, setCalendarDate, calView, setCalView,
   today, showAddE, setShowAddE, newE, setNewE, notify, addEvent: addEventDB, removeEvent }) {
 
+  const [selectedDay, setSelectedDay] = useState(null);
+
   function addEvent() {
     if (!newE.title.trim() || !newE.date) return;
     const [y,m,d] = newE.date.split("-").map(Number);
@@ -1005,11 +1007,21 @@ function CalendarTab({ events, calendarDate, setCalendarDate, calView, setCalVie
     setShowAddE(false);
   }
 
+  function handleAddClick() {
+    // Pre-fill date from selected calendar day if available
+    if (selectedDay && !showAddE) {
+      const y = calendarDate.getFullYear(), m = calendarDate.getMonth();
+      const dateStr = `${y}-${String(m+1).padStart(2,"0")}-${String(selectedDay).padStart(2,"0")}`;
+      setNewE(prev => ({ ...prev, date: dateStr }));
+    }
+    setShowAddE(!showAddE);
+  }
+
   const upcoming = [...events].filter(e=>e.date>=today).sort((a,b)=>a.date-b.date).slice(0,8);
 
   return (
     <div className="fade-up">
-      <SectionHeader title="לוח שנה" icon="📅" onAdd={()=>setShowAddE(!showAddE)} />
+      <SectionHeader title="לוח שנה" icon="📅" onAdd={handleAddClick} />
 
       {showAddE && (
         <AddForm onAdd={addEvent} onCancel={()=>setShowAddE(false)}>
@@ -1021,6 +1033,10 @@ function CalendarTab({ events, calendarDate, setCalendarDate, calView, setCalVie
         </AddForm>
       )}
 
+      {/* Upcoming events shown first */}
+      {calView==="upcoming" && <UpcomingList events={upcoming} removeEvent={removeEvent} />}
+
+      {/* View toggle buttons */}
       <div style={{ display:"flex", gap:8, marginBottom:16 }}>
         {[{key:"monthly",label:"חודשי"},{key:"upcoming",label:"קרובים"}].map(v=>(
           <button key={v.key} className="hov" onClick={()=>setCalView(v.key)} style={{
@@ -1033,14 +1049,18 @@ function CalendarTab({ events, calendarDate, setCalendarDate, calView, setCalVie
         ))}
       </div>
 
-      {calView==="monthly"  && <MonthlyCalendar calendarDate={calendarDate} setCalendarDate={setCalendarDate} events={events} today={today} removeEvent={removeEvent} />}
-      {calView==="upcoming" && <UpcomingList events={upcoming} removeEvent={removeEvent} />}
+      {calView==="monthly" && (
+        <MonthlyCalendar
+          calendarDate={calendarDate} setCalendarDate={setCalendarDate}
+          events={events} today={today} removeEvent={removeEvent}
+          selectedDay={selectedDay} setSelectedDay={setSelectedDay}
+        />
+      )}
     </div>
   );
 }
 
-function MonthlyCalendar({ calendarDate, setCalendarDate, events, today, removeEvent }) {
-  const [selectedDay, setSelectedDay] = useState(null);
+function MonthlyCalendar({ calendarDate, setCalendarDate, events, today, removeEvent, selectedDay, setSelectedDay }) {
   const y = calendarDate.getFullYear(), m = calendarDate.getMonth();
   const cells = [];
   for (let i=0; i<getFirstDay(y,m); i++) cells.push(null);
@@ -1124,6 +1144,8 @@ function UpcomingList({ events, removeEvent }) {
 
 function EventCard({ event, onRemove, showDate }) {
   const color = CATEGORY_COLORS[event.category] || C.accent;
+  const DAYS_FULL = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+  const dayName = showDate && event.date instanceof Date ? DAYS_FULL[event.date.getDay()] : null;
   return (
     <div className="chov" style={{
       background:C.card, borderRadius:14, padding:"13px 14px", marginBottom:10,
@@ -1134,7 +1156,11 @@ function EventCard({ event, onRemove, showDate }) {
       <div style={{ flex:1 }}>
         <div style={{ fontWeight:600, fontSize:15, color:C.text }}>{event.title}</div>
         <div style={{ display:"flex", gap:8, marginTop:4, alignItems:"center", flexWrap:"wrap" }}>
-          {showDate && <span style={{ color:C.textMuted, fontSize:12 }}>📅 {formatDate(event.date)}</span>}
+          {showDate && (
+            <span style={{ color:C.textMuted, fontSize:12 }}>
+              📅 יום {dayName}، {formatDate(event.date)}
+            </span>
+          )}
           <span style={{ background:`${color}22`, color, fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:6 }}>
             {event.category}
           </span>
