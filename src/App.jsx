@@ -595,9 +595,12 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
                 animation: `fadeUp 0.3s ${i*0.07}s ease both`,
               }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{ev.title}</div>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: C.text, display:"flex", alignItems:"center", gap:7 }}>
+                    {ev.title}
+                    {ev.time && <span style={{ color:C.textMuted, fontSize:12, fontWeight:500 }}>🕐 {ev.time}</span>}
+                  </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 3, alignItems: "center" }}>
-                    <span style={{ color: C.textMuted, fontSize: 11 }}>📅 יום {dayName}، {formatDate(ev.date)}{ev.time ? ` · 🕐 ${ev.time}` : ""}</span>
+                    <span style={{ color: C.textMuted, fontSize: 11 }}>📅 יום {dayName}، {formatDate(ev.date)}</span>
                     <span style={{ background:`${color}22`, color, fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:5 }}>
                       {ev.category}
                     </span>
@@ -1156,15 +1159,15 @@ function EventCard({ event, onRemove, showDate }) {
       borderRightWidth:4, borderRightColor:color, transition:"box-shadow 0.2s",
     }}>
       <div style={{ flex:1 }}>
-        <div style={{ fontWeight:600, fontSize:15, color:C.text }}>{event.title}</div>
+        <div style={{ fontWeight:600, fontSize:15, color:C.text, display:"flex", alignItems:"center", gap:8 }}>
+          {event.title}
+          {event.time && <span style={{ color:C.textMuted, fontSize:13, fontWeight:500 }}>🕐 {event.time}</span>}
+        </div>
         <div style={{ display:"flex", gap:8, marginTop:4, alignItems:"center", flexWrap:"wrap" }}>
           {showDate && (
             <span style={{ color:C.textMuted, fontSize:12 }}>
               📅 יום {dayName}، {formatDate(event.date)}
             </span>
-          )}
-          {event.time && (
-            <span style={{ color:C.textMuted, fontSize:12 }}>🕐 {event.time}</span>
           )}
           <span style={{ background:`${color}22`, color, fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:6 }}>
             {event.category}
