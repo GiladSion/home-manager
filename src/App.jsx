@@ -6,12 +6,25 @@ const SUPABASE_URL = "https://uqfpbgjetppfesbavgwu.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxZnBiZ2pldHBwZmVzYmF2Z3d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3OTA1ODEsImV4cCI6MjA4NzM2NjU4MX0.X5eGqiF-sH_rNBF2zpJp7NrbiruTlmAagDcCdhYi2UU";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ─── THEME ─── */
+/* ─── THEME — Material Design ─── */
 const C = {
-  bg: "#F4F7F2", card: "#FFFFFF", primary: "#3A6B3E", primaryLight: "#7AAF7E",
-  secondary: "#2E7D32", secondaryLight: "#A5D6A7", accent: "#D4A017",
-  text: "#1A2E1C", textMuted: "#5C7A5E", border: "#C8DBC9",
-  danger: "#C0392B", purple: "#6B8F71",
+  bg: "#EEEEEE",
+  card: "#FFFFFF",
+  primary: "#4CAF50",
+  primaryDark: "#388E3C",
+  primaryLight: "#C8E6C9",
+  secondary: "#66BB6A",
+  secondaryLight: "#A5D6A7",
+  accent: "#FF5722",
+  text: "#212121",
+  textMuted: "#757575",
+  border: "#E0E0E0",
+  danger: "#F44336",
+  purple: "#9C27B0",
+  headerGrad: "linear-gradient(135deg, #388E3C 0%, #1B5E20 100%)",
+  shadow: "0 2px 10px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.12)",
+  shadowHover: "0 8px 24px rgba(0,0,0,0.18), 0 4px 8px rgba(0,0,0,0.12)",
+  shadowDeep: "0 16px 38px rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.14)",
 };
 
 const URGENCY = {
@@ -75,30 +88,31 @@ function useNotifications() {
   return { permission, muted, requestPermission, notify, toasts };
 }
 
-/* ─── TOAST UI ─── */
+/* ─── TOAST UI — Material Snackbar style ─── */
 function ToastContainer({ toasts }) {
   const types = {
-    info:     { bg: C.primary,   icon: "ℹ️" },
-    success:  { bg: C.secondary, icon: "✅" },
-    event:    { bg: C.purple,    icon: "📅" },
-    shopping: { bg: "#B8862A",   icon: "🛒" },
-    warning:  { bg: "#C0392B",   icon: "⚠️" },
+    info:     { bg: "#323232", icon: "ℹ️" },
+    success:  { bg: "#388E3C", icon: "✅" },
+    event:    { bg: "#7B1FA2", icon: "📅" },
+    shopping: { bg: "#E65100", icon: "🛒" },
+    warning:  { bg: "#D32F2F", icon: "⚠️" },
   };
   return (
     <div style={{
-      position: "fixed", top: 14, left: "50%", transform: "translateX(-50%)",
-      zIndex: 9999, display: "flex", flexDirection: "column", gap: 8,
-      width: "min(94vw, 370px)", pointerEvents: "none",
+      position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)",
+      zIndex:9999, display:"flex", flexDirection:"column-reverse", gap:8,
+      width:"min(94vw, 400px)", pointerEvents:"none",
     }}>
       {toasts.map(t => {
         const s = types[t.type] || types.info;
         return (
           <div key={t.id} style={{
-            background: s.bg, color: "#fff", borderRadius: 14, padding: "12px 16px",
-            boxShadow: "0 6px 24px rgba(0,0,0,0.2)",
-            display: "flex", alignItems: "center", gap: 10,
-            animation: "toastIn 0.3s ease",
-            fontFamily: "Heebo, sans-serif", fontSize: 13, fontWeight: 600, direction: "rtl",
+            background:s.bg, color:"#fff", borderRadius:4, padding:"14px 18px",
+            boxShadow:"0 4px 12px rgba(0,0,0,0.3)",
+            display:"flex", alignItems:"center", gap:10,
+            animation:"toastIn 0.25s cubic-bezier(0.4,0,0.2,1)",
+            fontSize:13, fontWeight:500, direction:"rtl",
+            letterSpacing:"0.2px",
           }}>
             <span style={{ fontSize: 18 }}>{s.icon}</span>
             <span style={{ flex: 1 }}>{t.msg}</span>
@@ -316,84 +330,90 @@ export default function App() {
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: C.bg, fontFamily: "'Heebo','Assistant',sans-serif", direction: "rtl" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: ${C.bg}; }
-        .hov { transition: all 0.17s ease; }
-        .hov:hover { opacity: 0.86; transform: translateY(-1px); }
-        .hov:active { transform: scale(0.97); }
-        .chov { transition: box-shadow 0.2s; }
-        .chov:hover { box-shadow: 0 6px 22px rgba(58,107,62,0.14) !important; }
-        .sidebar-btn:hover { background: rgba(255,255,255,0.12) !important; }
-        .sidebar-btn.active { background: rgba(255,255,255,0.18) !important; }
-        input, select { outline: none; font-family: Heebo, sans-serif; }
-        button { font-family: Heebo, sans-serif; }
+        body { background: #EEEEEE; }
+        input, select { outline: none; font-family: Roboto, Heebo, sans-serif; }
+        button { font-family: Roboto, Heebo, sans-serif; }
+
+        /* Material ripple hover */
+        .hov { transition: all 0.2s cubic-bezier(0.4,0,0.2,1); }
+        .hov:hover { opacity: 0.92; transform: translateY(-2px); }
+        .hov:active { transform: scale(0.97); opacity: 1; }
+
+        /* Card hover lift */
+        .chov { transition: box-shadow 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .chov:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.18), 0 4px 8px rgba(0,0,0,0.12) !important; }
+
+        /* Sidebar */
+        .sidebar-btn { transition: all 0.2s ease; border-radius: 0 !important; position: relative; }
+        .sidebar-btn::after { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:white; transform:scaleY(0); transition:transform 0.2s ease; border-radius:0 2px 2px 0; }
+        .sidebar-btn.active::after { transform:scaleY(1); }
+        .sidebar-btn:hover { background: rgba(255,255,255,0.08) !important; }
+        .sidebar-btn.active { background: rgba(255,255,255,0.15) !important; }
+
+        /* Inputs */
+        input:focus, select:focus { border-color: ${C.primary} !important; box-shadow: 0 2px 0 ${C.primary} !important; }
+
+        /* Urgency */
         .urgency-group { display: flex; gap: 8px; justify-content: flex-start; flex-wrap: nowrap; }
         .urgency-btn { width: 90px !important; flex: 0 0 90px !important; min-width: 0; }
+
+        /* Checkboxes */
         .check-circle { width: 27px !important; height: 27px !important; flex: 0 0 27px !important; border-radius: 50% !important; }
-        .check-square { width: 27px !important; height: 27px !important; flex: 0 0 27px !important; border-radius: 8px !important; }
-        @keyframes fadeUp  { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .check-square { width: 27px !important; height: 27px !important; flex: 0 0 27px !important; border-radius: 3px !important; }
+
+        /* Animations */
+        @keyframes fadeUp  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes slideIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
         @keyframes toastIn { from { opacity:0; transform:translateY(-12px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .fade-up  { animation: fadeUp  0.35s ease both; }
-        .slide-in { animation: slideIn 0.28s ease both; }
-        .cal-cell:hover { background: ${C.border} !important; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 4px; }
-      `}</style>
+        @keyframes spin    { to { transform: rotate(360deg); } }
+        .fade-up  { animation: fadeUp  0.3s cubic-bezier(0.4,0,0.2,1) both; }
+        .slide-in { animation: slideIn 0.25s cubic-bezier(0.4,0,0.2,1) both; }
 
-      {loading && (
-        <div style={{
-          position:"fixed", inset:0, background:C.bg, zIndex:9999,
-          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16,
-        }}>
-          <span style={{ fontSize:40 }}>🏡</span>
-          <div style={{
-            width:36, height:36, borderRadius:"50%",
-            border:`3px solid ${C.border}`, borderTopColor:C.primary,
-            animation:"spin 0.8s linear infinite",
-          }} />
-          <p style={{ color:C.textMuted, fontFamily:"Heebo,sans-serif", fontSize:14, fontWeight:600 }}>טוען נתונים...</p>
-        </div>
-      )}
-      <style>{`
+        /* Calendar */
+        .cal-cell:hover { background: ${C.primaryLight} !important; border-radius: 50%; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #BDBDBD; border-radius: 4px; }
+
         /* ── DESKTOP layout ── */
         .app-shell { display: flex; min-height: 100vh; }
         .sidebar {
-          width: 240px; flex-shrink: 0;
-          background: linear-gradient(180deg, #264D29 0%, #1A3A1C 100%);
+          width: 260px; flex-shrink: 0;
+          background: ${C.headerGrad};
           display: flex; flex-direction: column;
           position: fixed; top: 0; right: 0; bottom: 0;
           z-index: 100; padding: 0 0 24px;
-          box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+          box-shadow: -4px 0 20px rgba(0,0,0,0.25);
         }
         .sidebar-logo {
-          padding: 28px 24px 24px;
-          border-bottom: 1px solid rgba(255,255,255,0.1);
-          margin-bottom: 16px;
+          padding: 32px 24px 28px;
+          border-bottom: 1px solid rgba(255,255,255,0.12);
+          margin-bottom: 8px;
         }
-        .sidebar-nav { flex: 1; padding: 0 14px; display: flex; flex-direction: column; gap: 4px; }
-        .sidebar-footer { padding: 0 14px; }
+        .sidebar-nav { flex: 1; padding: 8px 0; display: flex; flex-direction: column; gap: 0; }
+        .sidebar-footer { padding: 0 16px; }
         .main-content {
-          margin-right: 240px;
+          margin-right: 260px;
           margin-left: 0;
           flex: 1;
           min-height: 100vh;
-          width: calc(100vw - 240px);
+          width: calc(100vw - 260px);
         }
         .topbar {
-          background: ${C.card};
-          border-bottom: 1px solid ${C.border};
-          padding: 16px 36px;
+          background: ${C.headerGrad};
+          padding: 0 36px;
+          height: 64px;
           display: flex; align-items: center; justify-content: space-between;
           position: sticky; top: 0; z-index: 50;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           width: 100%;
         }
         .page-body {
-          padding: 32px 36px 48px;
-          max-width: 960px;
+          padding: 24px 36px 48px;
+          max-width: 980px;
           width: 100%;
           margin: 0 auto;
         }
@@ -404,22 +424,33 @@ export default function App() {
         @media (max-width: 768px) {
           .app-shell { display: block; }
           .sidebar { display: none; }
-          .main-content {
-            margin-right: 0;
-            margin-left: 0;
-            width: 100vw;
-          }
+          .main-content { margin-right: 0; margin-left: 0; width: 100vw; }
           .topbar { display: none; }
-          .page-body { padding: 16px 16px 90px; max-width: 100%; }
+          .page-body { padding: 16px 14px 90px; max-width: 100%; }
           .mobile-header { display: block; }
           .mobile-tabbar {
             display: flex; position: fixed; bottom: 0; left: 0; right: 0;
             background: ${C.card}; border-top: 1px solid ${C.border};
-            z-index: 100; padding: 8px 10px 12px; gap: 4px;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            z-index: 100; padding: 6px 8px 10px; gap: 2px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
           }
         }
       `}</style>
+
+      {loading && (
+        <div style={{
+          position:"fixed", inset:0, background:"#EEEEEE", zIndex:9999,
+          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16,
+        }}>
+          <span style={{ fontSize:44 }}>🏡</span>
+          <div style={{
+            width:40, height:40, borderRadius:"50%",
+            border:`3px solid #C8E6C9`, borderTopColor:C.primary,
+            animation:"spin 0.8s linear infinite",
+          }} />
+          <p style={{ color:C.textMuted, fontFamily:"Roboto,Heebo,sans-serif", fontSize:14, fontWeight:500, letterSpacing:"0.5px" }}>טוען נתונים...</p>
+        </div>
+      )}
 
       <ToastContainer toasts={toasts} />
 
@@ -428,39 +459,45 @@ export default function App() {
         {/* ══ SIDEBAR (desktop) ══ */}
         <aside className="sidebar">
           <div className="sidebar-logo">
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
-              <span style={{ fontSize:26 }}>🏡</span>
-              <span style={{ color:"#fff", fontSize:20, fontWeight:900, letterSpacing:"-0.3px" }}>בית חכם</span>
+            <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:6 }}>
+              <div style={{
+                width:42, height:42, borderRadius:"50%", background:"rgba(255,255,255,0.18)",
+                display:"flex", alignItems:"center", justifyContent:"center", fontSize:22,
+                boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
+              }}>🏡</div>
+              <div>
+                <div style={{ color:"#fff", fontSize:18, fontWeight:700, letterSpacing:"0.3px" }}>בית חכם</div>
+                <div style={{ color:"rgba(255,255,255,0.6)", fontSize:11, fontWeight:400 }}>ניהול משק הבית</div>
+              </div>
             </div>
-            <p style={{ color:"rgba(255,255,255,0.55)", fontSize:12 }}>ניהול משק הבית המשפחתי</p>
           </div>
 
           <nav className="sidebar-nav">
             {TABS.map(t => (
               <button key={t.key} className={`sidebar-btn hov${tab===t.key?" active":""}`}
                 onClick={() => setTab(t.key)} style={{
-                  width:"100%", padding:"11px 16px", borderRadius:12,
-                  background: tab===t.key ? "rgba(255,255,255,0.18)" : "transparent",
-                  border: tab===t.key ? "1.5px solid rgba(255,255,255,0.25)" : "1.5px solid transparent",
-                  color: tab===t.key ? "#fff" : "rgba(255,255,255,0.65)",
-                  fontFamily:"inherit", fontSize:14, fontWeight: tab===t.key ? 700 : 500,
-                  cursor:"pointer", display:"flex", alignItems:"center", gap:12, textAlign:"right",
-                  transition:"all 0.17s",
+                  width:"100%", padding:"14px 24px",
+                  background:"transparent",
+                  border:"none",
+                  color: tab===t.key ? "#fff" : "rgba(255,255,255,0.6)",
+                  fontSize:14, fontWeight: tab===t.key ? 700 : 400,
+                  cursor:"pointer", display:"flex", alignItems:"center", gap:16, textAlign:"right",
+                  letterSpacing:"0.2px",
                 }}>
-                <span style={{ fontSize:18, flexShrink:0 }}>{t.icon}</span>
-                {t.label}
-                {tab===t.key && <div style={{ marginRight:"auto", width:6, height:6, borderRadius:"50%", background:"#fff" }} />}
+                <span style={{ fontSize:20, flexShrink:0, opacity: tab===t.key ? 1 : 0.7 }}>{t.icon}</span>
+                <span>{t.label}</span>
               </button>
             ))}
           </nav>
 
           <div className="sidebar-footer">
             <button className="hov" onClick={requestPermission} style={{
-              width:"100%", padding:"10px 16px", borderRadius:12,
-              background: permission==="granted" && !muted ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)",
-              border:"1.5px solid rgba(255,255,255,0.2)",
-              color:"rgba(255,255,255,0.8)", fontFamily:"inherit", fontSize:12, fontWeight:600,
-              cursor:"pointer", display:"flex", alignItems:"center", gap:8,
+              width:"100%", padding:"11px 16px", borderRadius:4,
+              background:"rgba(255,255,255,0.1)",
+              border:"none",
+              color:"rgba(255,255,255,0.85)", fontSize:12, fontWeight:500,
+              cursor:"pointer", display:"flex", alignItems:"center", gap:10,
+              letterSpacing:"0.3px",
             }}>
               <span style={{ fontSize:16 }}>
                 {permission !== "granted" ? "🔕" : muted ? "🔕" : "🔔"}
@@ -475,23 +512,27 @@ export default function App() {
 
           {/* Mobile header */}
           <div className="mobile-header" style={{
-            background:`linear-gradient(135deg, ${C.primary} 0%, #264D29 100%)`,
-            padding:"18px 16px 20px", position:"relative", overflow:"hidden",
+            background: C.headerGrad,
+            padding:"16px 16px 18px", position:"relative", overflow:"hidden",
+            boxShadow:"0 4px 12px rgba(0,0,0,0.2)",
           }}>
-            <div style={{ position:"absolute", right:-20, top:-30, width:120, height:120, borderRadius:"50%", background:"rgba(255,255,255,0.06)" }} />
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", position:"relative", zIndex:1 }}>
-              <div>
-                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:2 }}>
-                  <span style={{ fontSize:22 }}>🏡</span>
-                  <span style={{ color:"#fff", fontSize:20, fontWeight:900 }}>בית חכם</span>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <div style={{
+                  width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.2)",
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:18,
+                }}>🏡</div>
+                <div>
+                  <div style={{ color:"#fff", fontSize:17, fontWeight:700 }}>בית חכם</div>
+                  <div style={{ color:"rgba(255,255,255,0.65)", fontSize:11 }}>ניהול משק הבית</div>
                 </div>
-                <p style={{ color:"rgba(255,255,255,0.7)", fontSize:12 }}>ניהול משק הבית המשפחתי</p>
               </div>
               <button className="hov" onClick={requestPermission} style={{
-                background:"rgba(255,255,255,0.15)", border:"1.5px solid rgba(255,255,255,0.3)",
-                borderRadius:10, padding:"7px 10px", color:"#fff",
-                fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
-                display:"flex", alignItems:"center", gap:4,
+                background:"rgba(255,255,255,0.15)", border:"none",
+                borderRadius:24, padding:"7px 14px", color:"#fff",
+                fontSize:11, fontWeight:500, cursor:"pointer",
+                display:"flex", alignItems:"center", gap:6,
+                letterSpacing:"0.3px",
               }}>
                 <span>{permission !== "granted" ? "🔕" : muted ? "🔕" : "🔔"}</span>
                 {permission !== "granted" ? "התראות" : muted ? "מושתק" : "פעיל"}
@@ -502,19 +543,17 @@ export default function App() {
           {/* Desktop top bar */}
           <div className="topbar">
             <div>
-              <h2 style={{ fontSize:20, fontWeight:800, color:C.text }}>
+              <h2 style={{ fontSize:20, fontWeight:500, color:"#fff", letterSpacing:"0.3px" }}>
                 {TABS.find(t=>t.key===tab)?.icon} {TABS.find(t=>t.key===tab)?.label}
               </h2>
-              <p style={{ fontSize:12, color:C.textMuted, marginTop:2 }}>
+              <p style={{ fontSize:12, color:"rgba(255,255,255,0.7)", marginTop:2, fontWeight:400 }}>
                 {today.getDate()} {MONTHS_HE[today.getMonth()]} {today.getFullYear()}
               </p>
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-              <div style={{ display:"flex", gap:8 }}>
-                <Stat label="משימות" value={sp.assignments.filter(a=>!a.approved).length} color={C.primary} />
-                <Stat label="קניות"  value={sp.shopping.filter(s=>!s.approved).length}    color="#B8862A"   />
-                <Stat label="אירועים" value={sp.events.filter(e=>e.date>=today).length}    color={C.purple}  />
-              </div>
+            <div style={{ display:"flex", gap:10 }}>
+              <Stat label="משימות" value={sp.assignments.filter(a=>!a.approved).length} color="#fff" />
+              <Stat label="קניות"  value={sp.shopping.filter(s=>!s.approved).length}    color="#fff" />
+              <Stat label="אירועים" value={sp.events.filter(e=>e.date>=today).length}   color="#fff" />
             </div>
           </div>
 
@@ -532,15 +571,15 @@ export default function App() {
         <div className="mobile-tabbar">
           {TABS.map(t => (
             <button key={t.key} className="hov" onClick={() => setTab(t.key)} style={{
-              flex:1, padding:"8px 4px", borderRadius:12,
-              background: tab===t.key ? C.primary : "transparent",
-              color: tab===t.key ? "#fff" : C.textMuted,
-              fontFamily:"inherit", fontSize:10, fontWeight: tab===t.key ? 700 : 500,
+              flex:1, padding:"6px 2px", borderRadius:0,
+              background:"transparent",
+              color: tab===t.key ? C.primary : "#9E9E9E",
               border:"none", cursor:"pointer",
               display:"flex", flexDirection:"column", alignItems:"center", gap:2,
+              borderTop: tab===t.key ? `2px solid ${C.primary}` : "2px solid transparent",
             }}>
-              <span style={{ fontSize:18 }}>{t.icon}</span>
-              {t.label}
+              <span style={{ fontSize:20 }}>{t.icon}</span>
+              <span style={{ fontSize:9, fontWeight: tab===t.key ? 700 : 400, letterSpacing:"0.3px" }}>{t.label}</span>
             </button>
           ))}
         </div>
@@ -570,19 +609,21 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
 
   return (
     <div className="fade-up">
-      {/* Welcome */}
+      {/* Welcome card — Material header overlap style */}
       <div style={{
-        marginBottom: 20, padding: "16px 18px",
-        background: C.card, borderRadius: 16,
-        boxShadow: "0 2px 14px rgba(0,0,0,0.07)",
-        borderRight: `5px solid ${C.primary}`,
+        marginBottom:20,
+        background: C.headerGrad,
+        borderRadius:4,
+        padding:"22px 22px 22px",
+        boxShadow: C.shadowDeep,
+        color:"#fff",
       }}>
-        <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 3 }}>📆 {dateStr}</div>
-        <div style={{ fontSize: 19, fontWeight: 900, color: C.text }}>שלום, משפחה! 👋</div>
-        <div style={{ fontSize: 13, color: C.textMuted, marginTop: 5 }}>
-          <span style={{ color: "#C0392B", fontWeight: 700 }}>{assignments.filter(a=>!a.approved).length}</span> משימות ·{" "}
-          <span style={{ color: "#C27A1A", fontWeight: 700 }}>{shopping.filter(s=>!s.approved).length}</span> פריטי קניות ·{" "}
-          <span style={{ color: C.secondary, fontWeight: 700 }}>{upcomingEvents.length}</span> אירועים קרובים
+        <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)", marginBottom:4, letterSpacing:"0.5px", fontWeight:400 }}>📆 {dateStr}</div>
+        <div style={{ fontSize:22, fontWeight:500, letterSpacing:"0.2px" }}>שלום, משפחה! 👋</div>
+        <div style={{ fontSize:13, color:"rgba(255,255,255,0.8)", marginTop:10, display:"flex", gap:16, flexWrap:"wrap" }}>
+          <span>✅ <strong>{assignments.filter(a=>!a.approved).length}</strong> משימות</span>
+          <span>🛒 <strong>{shopping.filter(s=>!s.approved).length}</strong> פריטי קניות</span>
+          <span>📅 <strong>{upcomingEvents.length}</strong> אירועים קרובים</span>
         </div>
       </div>
 
@@ -592,23 +633,22 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
           ? <EmptyMsg text="כל המשימות הושלמו! 🎉" />
           : pendingTasks.map((a, i) => (
             <div key={a.id} style={{
-              background: C.card, borderRadius: 12, padding: "11px 13px", marginBottom: 8,
-              boxShadow: "0 1px 6px rgba(0,0,0,0.05)", display: "flex", alignItems: "center", gap: 10,
-              border: `1.5px solid ${C.border}`,
-              borderRight: `4px solid ${URGENCY[a.urgency].color}`,
-              animation: `fadeUp 0.3s ${i*0.07}s ease both`,
+              background: C.card, borderRadius:4, padding:"12px 14px", marginBottom:8,
+              boxShadow: C.shadow, display:"flex", alignItems:"center", gap:10,
+              borderRight:`4px solid ${URGENCY[a.urgency].color}`,
+              animation:`fadeUp 0.3s ${i*0.07}s cubic-bezier(0.4,0,0.2,1) both`,
             }}>
               <button className="hov" onClick={() => quickDone(a.id)} style={{
                 width:25, height:25, minWidth:25, maxWidth:25, borderRadius:"50%",
-                background:"transparent", border:`2px solid ${C.border}`,
+                background:"transparent", border:`2px solid #BDBDBD`,
                 flexShrink:0, cursor:"pointer", padding:0,
                 display:"flex", alignItems:"center", justifyContent:"center",
               }} title="סמן כהושלם" />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</div>
-                <div style={{ display: "flex", gap: 6, marginTop: 3, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontWeight:500, fontSize:14, color:C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.title}</div>
+                <div style={{ display:"flex", gap:6, marginTop:3, flexWrap:"wrap", alignItems:"center" }}>
                   <UrgencyBadge urgency={a.urgency} small />
-                  <span style={{ color: C.textMuted, fontSize: 11 }}>👤 {a.assignee} · 📅 {a.due}</span>
+                  <span style={{ color:C.textMuted, fontSize:11 }}>👤 {a.assignee} · 📅 {a.due}</span>
                 </div>
               </div>
             </div>
@@ -622,19 +662,19 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
           ? <EmptyMsg text="אין פריטים לקנייה כרגע 🛍️" />
           : pendingShopping.map((s, i) => (
             <div key={s.id} style={{
-              background: C.card, borderRadius: 12, padding: "11px 13px", marginBottom: 8,
-              boxShadow: "0 1px 6px rgba(0,0,0,0.05)", display: "flex", alignItems: "center", gap: 10,
-              border: `1.5px solid ${C.border}`,
-              animation: `fadeUp 0.3s ${i*0.07}s ease both`,
+              background:C.card, borderRadius:4, padding:"12px 14px", marginBottom:8,
+              boxShadow:C.shadow, display:"flex", alignItems:"center", gap:10,
+              animation:`fadeUp 0.3s ${i*0.07}s cubic-bezier(0.4,0,0.2,1) both`,
             }}>
               <button className="hov" onClick={() => quickBought(s.id)} style={{
-                width:25, height:25, minWidth:25, maxWidth:25, borderRadius:7,
-                background:"transparent", border:`2px solid ${C.border}`,
+                width:25, height:25, minWidth:25, maxWidth:25, borderRadius:3,
+                background:"transparent", border:`2px solid #BDBDBD`,
                 flexShrink:0, cursor:"pointer", padding:0,
               }} title="סמן כנרכש" />
-              <div style={{ flex: 1 }}>
-                <span style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{s.item}</span>
-                <span style={{ color: C.textMuted, fontSize: 12, marginRight: 8 }}>{s.qty}</span>
+              <span style={{ fontSize:20 }}>{s.icon}</span>
+              <div style={{ flex:1 }}>
+                <span style={{ fontWeight:500, fontSize:14, color:C.text }}>{s.item}</span>
+                {s.qty && s.qty !== "1" && <span style={{ color:C.textMuted, fontSize:12, marginRight:8 }}> ×{s.qty}</span>}
               </div>
             </div>
           ))
@@ -651,22 +691,19 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
             const dayName = ev.date instanceof Date ? DAYS_FULL[ev.date.getDay()] : "";
             return (
               <div key={ev.id} style={{
-                background: C.card, borderRadius: 12, padding: "11px 13px", marginBottom: 8,
-                boxShadow: "0 1px 6px rgba(0,0,0,0.05)", display: "flex", alignItems: "center", gap: 10,
-                borderRight: `4px solid ${color}`, border: `1.5px solid ${C.border}`,
-                borderRightWidth: 4, borderRightColor: color,
-                animation: `fadeUp 0.3s ${i*0.07}s ease both`,
+                background:C.card, borderRadius:4, padding:"12px 14px", marginBottom:8,
+                boxShadow:C.shadow, display:"flex", alignItems:"center", gap:10,
+                borderRight:`4px solid ${color}`,
+                animation:`fadeUp 0.3s ${i*0.07}s cubic-bezier(0.4,0,0.2,1) both`,
               }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: C.text, display:"flex", alignItems:"center", gap:7 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontWeight:500, fontSize:14, color:C.text, display:"flex", alignItems:"center", gap:7 }}>
                     {ev.title}
-                    {ev.time && <span style={{ color:C.textMuted, fontSize:12, fontWeight:500 }}>🕐 {ev.time}</span>}
+                    {ev.time && <span style={{ color:C.textMuted, fontSize:12, fontWeight:400 }}>🕐 {ev.time}</span>}
                   </div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 3, alignItems: "center" }}>
-                    <span style={{ color: C.textMuted, fontSize: 11 }}>📅 יום {dayName}، {formatDate(ev.date)}</span>
-                    <span style={{ background:`${color}22`, color, fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:5 }}>
-                      {ev.category}
-                    </span>
+                  <div style={{ display:"flex", gap:8, marginTop:4, alignItems:"center" }}>
+                    <span style={{ color:C.textMuted, fontSize:11 }}>📅 יום {dayName}، {formatDate(ev.date)}</span>
+                    <span style={{ background:`${color}18`, color, fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:99 }}>{ev.category}</span>
                   </div>
                 </div>
               </div>
@@ -680,19 +717,20 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
 
 function DashSection({ title, icon, children, onNav, navLabel }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:9 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
-          <span style={{ fontSize:17 }}>{icon}</span>
-          <span style={{ fontWeight:800, fontSize:15, color:C.text }}>{title}</span>
+    <div style={{ marginBottom:22 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:18 }}>{icon}</span>
+          <span style={{ fontWeight:500, fontSize:16, color:C.text, letterSpacing:"0.2px" }}>{title}</span>
         </div>
         <button className="hov" onClick={onNav} style={{
-          background: "none", border:`1.5px solid ${C.border}`, borderRadius:10,
-          padding:"5px 11px", fontFamily:"inherit", fontSize:12, fontWeight:700,
-          color:C.primary, cursor:"pointer",
+          background:"transparent", border:"none",
+          fontSize:12, fontWeight:500, color:C.primary, cursor:"pointer",
+          letterSpacing:"0.5px", textTransform:"uppercase",
+          padding:"4px 8px",
         }}>{navLabel}</button>
       </div>
-      <div style={{ background:`${C.primary}07`, borderRadius:14, padding:"12px 12px 4px" }}>
+      <div style={{ background:C.card, borderRadius:4, padding:"8px 8px 0", boxShadow:C.shadow }}>
         {children}
       </div>
     </div>
@@ -701,7 +739,7 @@ function DashSection({ title, icon, children, onNav, navLabel }) {
 
 function EmptyMsg({ text }) {
   return (
-    <div style={{ textAlign:"center", padding:"12px 0 16px", color:C.textMuted, fontSize:13 }}>{text}</div>
+    <div style={{ textAlign:"center", padding:"16px 0 20px", color:C.textMuted, fontSize:13, fontWeight:400, letterSpacing:"0.2px" }}>{text}</div>
   );
 }
 
@@ -773,28 +811,28 @@ function AssignCard({ item, onToggle, onRemove, delay=0 }) {
   const u = URGENCY[item.urgency] || URGENCY.medium;
   return (
     <div className="chov" style={{
-      background:C.card, borderRadius:14, padding:"13px 14px", marginBottom:10,
-      boxShadow:"0 2px 10px rgba(0,0,0,0.06)",
-      display:"flex", alignItems:"center", gap:11,
-      opacity: item.approved ? 0.58 : 1,
-      border:`1.5px solid ${item.approved ? C.secondaryLight : C.border}`,
-      borderRight:`4px solid ${item.approved ? C.secondaryLight : u.color}`,
-      animation:`fadeUp 0.3s ${delay}s ease both`,
-      transition:"box-shadow 0.2s",
+      background:C.card, borderRadius:4, padding:"14px 16px", marginBottom:8,
+      boxShadow: C.shadow,
+      display:"flex", alignItems:"center", gap:12,
+      opacity: item.approved ? 0.55 : 1,
+      borderRight:`4px solid ${item.approved ? "#BDBDBD" : u.color}`,
+      animation:`fadeUp 0.3s ${delay}s cubic-bezier(0.4,0,0.2,1) both`,
     }}>
       <button className="hov" onClick={()=>onToggle(item.id)} style={{
         width:27, height:27, minWidth:27, maxWidth:27, borderRadius:"50%",
-        background: item.approved ? C.secondary : "transparent",
-        border:`2px solid ${item.approved ? C.secondary : C.border}`,
+        background: item.approved ? C.primary : "transparent",
+        border:`2px solid ${item.approved ? C.primary : "#BDBDBD"}`,
         display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
         color:"#fff", fontSize:13, cursor:"pointer", padding:0,
       }}>{item.approved ? "✓" : ""}</button>
 
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontWeight:600, fontSize:15, color:C.text,
+        <div style={{ fontWeight:500, fontSize:15, color:C.text,
           textDecoration:item.approved?"line-through":"none",
-          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.title}</div>
-        <div style={{ display:"flex", gap:7, marginTop:4, flexWrap:"wrap", alignItems:"center" }}>
+          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+          letterSpacing:"0.1px",
+        }}>{item.title}</div>
+        <div style={{ display:"flex", gap:7, marginTop:5, flexWrap:"wrap", alignItems:"center" }}>
           {!item.approved && <UrgencyBadge urgency={item.urgency} />}
           <Tag color={C.primary}>{item.assignee}</Tag>
           <span style={{ color:C.textMuted, fontSize:11 }}>📅 {item.due}</span>
@@ -802,7 +840,7 @@ function AssignCard({ item, onToggle, onRemove, delay=0 }) {
       </div>
 
       <button className="hov" onClick={()=>onRemove(item.id)} style={{
-        background:"none", color:C.textMuted, fontSize:20, padding:4, border:"none", cursor:"pointer", flexShrink:0,
+        background:"none", color:"#BDBDBD", fontSize:22, padding:4, border:"none", cursor:"pointer", flexShrink:0,
       }}>×</button>
     </div>
   );
@@ -813,8 +851,9 @@ function UrgencyBadge({ urgency, small }) {
   return (
     <span style={{
       background:u.bg, color:u.color,
-      fontSize:small?10:11, fontWeight:700,
-      padding:small?"1px 6px":"2px 8px", borderRadius:6,
+      fontSize:small?10:11, fontWeight:500,
+      padding:small?"1px 7px":"2px 9px", borderRadius:99,
+      letterSpacing:"0.3px",
       border:`1px solid ${u.color}33`, flexShrink:0,
     }}>{u.icon} {u.label}</span>
   );
@@ -1017,12 +1056,14 @@ function ShoppingTab({ shopping, showAddS, setShowAddS, newS, setNewS,
       {/* Finish shopping button */}
       {approved.length > 0 && (
         <button className="hov" onClick={()=>setShowFinish(true)} style={{
-          width:"100%", marginTop:16, padding:"14px", borderRadius:14,
-          background:`linear-gradient(135deg, ${C.primary}, #1A4A1C)`,
-          color:"#fff", border:"none", fontFamily:"inherit", fontSize:15,
-          fontWeight:800, cursor:"pointer", display:"flex", alignItems:"center",
+          width:"100%", marginTop:16, padding:"14px",
+          borderRadius:24,
+          background:`linear-gradient(135deg, ${C.primary}, ${C.primaryDark})`,
+          color:"#fff", border:"none", fontSize:14,
+          fontWeight:500, cursor:"pointer", display:"flex", alignItems:"center",
           justifyContent:"center", gap:10,
-          boxShadow:`0 4px 18px rgba(58,107,62,0.4)`,
+          boxShadow:`0 6px 20px rgba(76,175,80,0.45)`,
+          letterSpacing:"0.8px", textTransform:"uppercase",
         }}>
           <span style={{ fontSize:20 }}>🛒</span>
           סיום קנייה ({approved.length} פריטים)
@@ -1032,39 +1073,44 @@ function ShoppingTab({ shopping, showAddS, setShowAddS, newS, setNewS,
       {/* Finish shopping modal */}
       {showFinish && (
         <div style={{
-          position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:500,
+          position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:500,
           display:"flex", alignItems:"center", justifyContent:"center", padding:20,
         }} onClick={()=>setShowFinish(false)}>
           <div onClick={e=>e.stopPropagation()} style={{
-            background:C.card, borderRadius:22, padding:28, width:"min(340px,90vw)",
-            boxShadow:"0 16px 48px rgba(0,0,0,0.25)", direction:"rtl",
+            background:C.card, borderRadius:4, padding:0, width:"min(340px,90vw)",
+            boxShadow:C.shadowDeep, direction:"rtl", overflow:"hidden",
           }}>
-            <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>🛒</div>
-            <h3 style={{ fontSize:18, fontWeight:900, color:C.text, textAlign:"center", marginBottom:4 }}>סיום קנייה</h3>
-            <p style={{ fontSize:13, color:C.textMuted, textAlign:"center", marginBottom:20 }}>
-              {approved.length} פריטים נרכשו — כמה שילמת?
-            </p>
-            <div style={{ position:"relative", marginBottom:16 }}>
-              <input
-                type="number" value={finalAmount}
-                onChange={e=>setFinalAmount(e.target.value)}
-                placeholder="סכום בש״ח"
-                style={{ ...IS, fontSize:22, fontWeight:700, textAlign:"center", paddingLeft:36 }}
-                autoFocus
-              />
-              <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", fontSize:16, color:C.textMuted }}>₪</span>
+            <div style={{ background:C.headerGrad, padding:"24px 24px 20px", color:"#fff" }}>
+              <div style={{ fontSize:32, marginBottom:4 }}>🛒</div>
+              <h3 style={{ fontSize:20, fontWeight:500, letterSpacing:"0.2px" }}>סיום קנייה</h3>
+              <p style={{ fontSize:13, color:"rgba(255,255,255,0.8)", marginTop:4, fontWeight:400 }}>
+                {approved.length} פריטים נרכשו — כמה שילמת?
+              </p>
             </div>
-            <div style={{ display:"flex", gap:10 }}>
-              <button className="hov" onClick={finishShopping} style={{
-                flex:1, padding:"12px", borderRadius:12, background:C.primary,
-                color:"#fff", border:"none", fontFamily:"inherit", fontWeight:700,
-                fontSize:14, cursor:"pointer",
-              }}>שמור וסיים</button>
-              <button className="hov" onClick={()=>setShowFinish(false)} style={{
-                padding:"12px 18px", borderRadius:12, background:C.border,
-                color:C.text, border:"none", fontFamily:"inherit", fontWeight:600,
-                fontSize:14, cursor:"pointer",
-              }}>ביטול</button>
+            <div style={{ padding:"20px 24px 24px" }}>
+              <div style={{ position:"relative", marginBottom:20 }}>
+                <input
+                  type="number" value={finalAmount}
+                  onChange={e=>setFinalAmount(e.target.value)}
+                  placeholder="סכום בש״ח"
+                  style={{ ...IS, fontSize:24, fontWeight:300, textAlign:"center", paddingLeft:36, border:"none", borderBottom:`2px solid ${C.primary}`, borderRadius:0 }}
+                  autoFocus
+                />
+                <span style={{ position:"absolute", left:8, top:"50%", transform:"translateY(-50%)", fontSize:18, color:C.textMuted }}>₪</span>
+              </div>
+              <div style={{ display:"flex", gap:8, justifyContent:"flex-end" }}>
+                <button className="hov" onClick={()=>setShowFinish(false)} style={{
+                  padding:"10px 18px", borderRadius:24, background:"transparent",
+                  color:C.textMuted, border:"none", fontWeight:500,
+                  fontSize:13, cursor:"pointer", letterSpacing:"0.5px", textTransform:"uppercase",
+                }}>ביטול</button>
+                <button className="hov" onClick={finishShopping} style={{
+                  padding:"10px 24px", borderRadius:24, background:C.primary,
+                  color:"#fff", border:"none", fontWeight:500,
+                  fontSize:13, cursor:"pointer", letterSpacing:"0.5px", textTransform:"uppercase",
+                  boxShadow:"0 3px 8px rgba(76,175,80,0.4)",
+                }}>שמור וסיים</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1097,32 +1143,32 @@ function QtySelector({ qty, onChange, large }) {
 function ShopCard({ item, onToggle, onRemove, delay=0 }) {
   return (
     <div className="chov" style={{
-      background:C.card, borderRadius:14, padding:"12px 14px", marginBottom:8,
-      boxShadow:"0 2px 10px rgba(0,0,0,0.06)", display:"flex", alignItems:"center", gap:11,
-      opacity:item.approved?0.58:1,
-      border:`1.5px solid ${item.approved?C.secondaryLight:C.border}`,
-      animation:`fadeUp 0.3s ${delay}s ease both`, transition:"box-shadow 0.2s",
+      background:C.card, borderRadius:4, padding:"13px 16px", marginBottom:8,
+      boxShadow: C.shadow, display:"flex", alignItems:"center", gap:12,
+      opacity:item.approved ? 0.55 : 1,
+      animation:`fadeUp 0.3s ${delay}s cubic-bezier(0.4,0,0.2,1) both`,
     }}>
       <button className="hov" onClick={()=>onToggle(item.id)} style={{
-        width:27, height:27, minWidth:27, maxWidth:27, borderRadius:8,
-        background:item.approved?C.secondary:"transparent",
-        border:`2px solid ${item.approved?C.secondary:C.border}`,
+        width:27, height:27, minWidth:27, maxWidth:27, borderRadius:3,
+        background:item.approved ? C.primary : "transparent",
+        border:`2px solid ${item.approved ? C.primary : "#BDBDBD"}`,
         display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
         color:"#fff", fontSize:13, cursor:"pointer", padding:0,
-      }}>{item.approved?"✓":""}</button>
+      }}>{item.approved ? "✓" : ""}</button>
       {item.icon && <span style={{ fontSize:22, flexShrink:0 }}>{item.icon}</span>}
       <div style={{ flex:1 }}>
-        <span style={{ fontWeight:600, fontSize:15, color:C.text,
-          textDecoration:item.approved?"line-through":"none" }}>{item.item}</span>
+        <span style={{ fontWeight:500, fontSize:15, color:C.text, letterSpacing:"0.1px",
+          textDecoration:item.approved ? "line-through" : "none" }}>{item.item}</span>
       </div>
       {item.qty && item.qty !== "1" && (
         <div style={{
-          background:`${C.primary}15`, color:C.primary, border:`1.5px solid ${C.primary}30`,
-          borderRadius:8, padding:"3px 10px", fontSize:13, fontWeight:700, flexShrink:0,
+          background:`${C.primary}15`, color:C.primary,
+          borderRadius:99, padding:"3px 12px", fontSize:12, fontWeight:500, flexShrink:0,
+          letterSpacing:"0.3px",
         }}>×{item.qty}</div>
       )}
       <button className="hov" onClick={()=>onRemove(item.id)} style={{
-        background:"none", color:C.textMuted, fontSize:20, padding:4, border:"none", cursor:"pointer",
+        background:"none", color:"#BDBDBD", fontSize:22, padding:4, border:"none", cursor:"pointer",
       }}>×</button>
     </div>
   );
@@ -1173,14 +1219,17 @@ function CalendarTab({ events, calendarDate, setCalendarDate, calView, setCalVie
       )}
 
       {/* View toggle buttons - קרובים first */}
-      <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.card, borderRadius:4, boxShadow:C.shadow, overflow:"hidden" }}>
         {[{key:"upcoming",label:"קרובים"},{key:"monthly",label:"חודשי"}].map(v=>(
           <button key={v.key} className="hov" onClick={()=>setCalView(v.key)} style={{
-            padding:"8px 20px", borderRadius:10, fontFamily:"inherit",
-            background:calView===v.key?C.primary:C.card,
-            color:calView===v.key?"#fff":C.textMuted,
-            fontWeight:600, fontSize:13, boxShadow:"0 2px 8px rgba(0,0,0,0.07)",
-            border:"none", cursor:"pointer", transition:"all 0.18s",
+            flex:1, padding:"12px 20px", borderRadius:0,
+            background: calView===v.key ? C.primary : "transparent",
+            color: calView===v.key ? "#fff" : C.textMuted,
+            fontWeight: calView===v.key ? 700 : 400,
+            fontSize:13, border:"none", cursor:"pointer",
+            borderBottom: calView===v.key ? `3px solid ${C.primaryDark}` : "3px solid transparent",
+            letterSpacing:"0.5px", textTransform:"uppercase",
+            transition:"all 0.2s",
           }}>{v.label}</button>
         ))}
       </div>
@@ -1208,18 +1257,21 @@ function MonthlyCalendar({ calendarDate, setCalendarDate, events, today, removeE
   return (
     <div>
       {/* nav */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:11,
-        background:C.card, borderRadius:14, padding:"12px 16px", boxShadow:"0 2px 10px rgba(0,0,0,0.06)" }}>
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        marginBottom:12, background:C.card, borderRadius:4,
+        padding:"12px 20px", boxShadow:C.shadow,
+      }}>
         <button className="hov" onClick={()=>setCalendarDate(new Date(y,m-1,1))} style={NBS}>›</button>
-        <span style={{ fontWeight:700, fontSize:16, color:C.text }}>{MONTHS_HE[m]} {y}</span>
+        <span style={{ fontWeight:500, fontSize:17, color:C.text, letterSpacing:"0.3px" }}>{MONTHS_HE[m]} {y}</span>
         <button className="hov" onClick={()=>setCalendarDate(new Date(y,m+1,1))} style={NBS}>‹</button>
       </div>
 
       {/* grid */}
-      <div style={{ background:C.card, borderRadius:14, padding:11, boxShadow:"0 2px 10px rgba(0,0,0,0.06)" }}>
+      <div style={{ background:C.card, borderRadius:4, padding:14, boxShadow:C.shadow }}>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2, marginBottom:8 }}>
           {DAYS_HE.map(d=>(
-            <div key={d} style={{ textAlign:"center", fontSize:11, fontWeight:700, color:C.textMuted, padding:"3px 0" }}>{d}</div>
+            <div key={d} style={{ textAlign:"center", fontSize:11, fontWeight:500, color:C.textMuted, padding:"4px 0", letterSpacing:"0.5px" }}>{d}</div>
           ))}
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:3 }}>
@@ -1230,18 +1282,18 @@ function MonthlyCalendar({ calendarDate, setCalendarDate, events, today, removeE
             const isS = selectedDay===day;
             return (
               <div key={day} className="cal-cell" onClick={()=>setSelectedDay(isS?null:day)} style={{
-                borderRadius:9, padding:"5px 3px", minHeight:44, cursor:"pointer",
-                background: isS?C.primary : isT?`${C.primary}18`:"transparent",
-                border: isT&&!isS?`1.5px solid ${C.primary}`:"1.5px solid transparent",
+                borderRadius: isT || isS ? "50%" : 4,
+                padding:"5px 3px", minHeight:44, cursor:"pointer",
+                background: isS ? C.primary : isT ? C.primary : "transparent",
                 display:"flex", flexDirection:"column", alignItems:"center", gap:2,
-                transition:"background 0.14s",
+                transition:"background 0.15s",
               }}>
-                <span style={{ fontSize:12, fontWeight:isT?700:500,
-                  color:isS?"#fff":isT?C.primary:C.text }}>{day}</span>
+                <span style={{ fontSize:12, fontWeight: isT||isS ? 700 : 400,
+                  color: isS||isT ? "#fff" : C.text }}>{day}</span>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:2, justifyContent:"center" }}>
                   {de.slice(0,3).map((e,idx)=>(
                     <div key={idx} style={{ width:5, height:5, borderRadius:"50%",
-                      background:isS?"rgba(255,255,255,0.8)":CATEGORY_COLORS[e.category]||C.accent }} />
+                      background: isS||isT ? "rgba(255,255,255,0.8)" : CATEGORY_COLORS[e.category]||C.accent }} />
                   ))}
                 </div>
               </div>
@@ -1251,8 +1303,8 @@ function MonthlyCalendar({ calendarDate, setCalendarDate, events, today, removeE
       </div>
 
       {selectedDay && (
-        <div className="slide-in" style={{ marginTop:12 }}>
-          <div style={{ fontWeight:700, fontSize:14, color:C.text, marginBottom:8 }}>
+        <div className="slide-in" style={{ marginTop:14 }}>
+          <div style={{ fontWeight:500, fontSize:14, color:C.text, marginBottom:10, letterSpacing:"0.2px" }}>
             אירועים ב-{selectedDay}/{m+1}/{y}
           </div>
           {selEvs.length===0
@@ -1262,11 +1314,11 @@ function MonthlyCalendar({ calendarDate, setCalendarDate, events, today, removeE
         </div>
       )}
 
-      <div style={{ display:"flex", gap:14, marginTop:13, flexWrap:"wrap" }}>
+      <div style={{ display:"flex", gap:14, marginTop:14, flexWrap:"wrap" }}>
         {Object.entries(CATEGORY_COLORS).map(([cat,color])=>(
           <div key={cat} style={{ display:"flex", alignItems:"center", gap:5 }}>
             <div style={{ width:8, height:8, borderRadius:"50%", background:color }} />
-            <span style={{ fontSize:11, color:C.textMuted }}>{cat}</span>
+            <span style={{ fontSize:11, color:C.textMuted, fontWeight:400 }}>{cat}</span>
           </div>
         ))}
       </div>
@@ -1285,29 +1337,28 @@ function EventCard({ event, onRemove, showDate }) {
   const dayName = showDate && event.date instanceof Date ? DAYS_FULL[event.date.getDay()] : null;
   return (
     <div className="chov" style={{
-      background:C.card, borderRadius:14, padding:"13px 14px", marginBottom:10,
-      boxShadow:"0 2px 10px rgba(0,0,0,0.06)", display:"flex", alignItems:"center", gap:11,
-      borderRight:`4px solid ${color}`, border:`1.5px solid ${C.border}`,
-      borderRightWidth:4, borderRightColor:color, transition:"box-shadow 0.2s",
+      background:C.card, borderRadius:4, padding:"13px 16px", marginBottom:10,
+      boxShadow: C.shadow, display:"flex", alignItems:"center", gap:12,
+      borderRight:`4px solid ${color}`,
     }}>
       <div style={{ flex:1 }}>
-        <div style={{ fontWeight:600, fontSize:15, color:C.text, display:"flex", alignItems:"center", gap:8 }}>
+        <div style={{ fontWeight:500, fontSize:15, color:C.text, display:"flex", alignItems:"center", gap:8, letterSpacing:"0.1px" }}>
           {event.title}
-          {event.time && <span style={{ color:C.textMuted, fontSize:13, fontWeight:500 }}>🕐 {event.time}</span>}
+          {event.time && <span style={{ color:C.textMuted, fontSize:13, fontWeight:400 }}>🕐 {event.time}</span>}
         </div>
-        <div style={{ display:"flex", gap:8, marginTop:4, alignItems:"center", flexWrap:"wrap" }}>
+        <div style={{ display:"flex", gap:8, marginTop:5, alignItems:"center", flexWrap:"wrap" }}>
           {showDate && (
             <span style={{ color:C.textMuted, fontSize:12 }}>
               📅 יום {dayName}، {formatDate(event.date)}
             </span>
           )}
-          <span style={{ background:`${color}22`, color, fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:6 }}>
+          <span style={{ background:`${color}18`, color, fontSize:11, fontWeight:500, padding:"2px 9px", borderRadius:99, letterSpacing:"0.3px" }}>
             {event.category}
           </span>
         </div>
       </div>
       <button className="hov" onClick={()=>onRemove(event.id)} style={{
-        background:"none", color:C.textMuted, fontSize:20, padding:4, border:"none", cursor:"pointer",
+        background:"none", color:"#BDBDBD", fontSize:22, padding:4, border:"none", cursor:"pointer",
       }}>×</button>
     </div>
   );
@@ -1353,41 +1404,41 @@ function BudgetTab({ budgetEntries, monthlyLimit, setMonthlyLimit, removeBudgetE
     <div className="fade-up">
       <SectionHeader title="תקציב חודשי" icon="💰" />
 
-      {/* Monthly summary card */}
+      {/* Monthly summary card — Material header style */}
       <div style={{
-        background: overBudget ? "#FFF0EE" : C.card, borderRadius:18, padding:22, marginBottom:16,
-        boxShadow:"0 2px 12px rgba(0,0,0,0.07)",
-        border:`1.5px solid ${overBudget ? C.danger+"44" : C.border}`,
+        background: overBudget ? "#B71C1C" : C.headerGrad,
+        borderRadius:4, padding:"24px 24px 20px", marginBottom:20,
+        boxShadow: C.shadowDeep, color:"#fff",
       }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
           <div>
-            <div style={{ fontSize:12, color:C.textMuted, fontWeight:600, marginBottom:3 }}>הוצאות החודש</div>
-            <div style={{ fontSize:32, fontWeight:900, color: overBudget ? C.danger : C.text }}>
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.75)", fontWeight:400, marginBottom:4, letterSpacing:"0.5px", textTransform:"uppercase" }}>הוצאות החודש</div>
+            <div style={{ fontSize:36, fontWeight:300, letterSpacing:"-0.5px" }}>
               ₪{thisMonthTotal.toLocaleString()}
             </div>
             {remaining !== null && (
-              <div style={{ fontSize:13, color: overBudget ? C.danger : C.secondary, fontWeight:700, marginTop:2 }}>
-                {overBudget ? `חריגה של ₪${Math.abs(remaining).toLocaleString()}` : `נותרו ₪${remaining.toLocaleString()}`}
+              <div style={{ fontSize:13, color:"rgba(255,255,255,0.85)", fontWeight:400, marginTop:4 }}>
+                {overBudget ? `⚠️ חריגה של ₪${Math.abs(remaining).toLocaleString()}` : `✅ נותרו ₪${remaining.toLocaleString()}`}
               </div>
             )}
           </div>
           <div style={{ textAlign:"left" }}>
-            <div style={{ fontSize:12, color:C.textMuted, fontWeight:600, marginBottom:4 }}>תקציב חודשי</div>
+            <div style={{ fontSize:11, color:"rgba(255,255,255,0.7)", fontWeight:400, marginBottom:6, letterSpacing:"0.5px", textTransform:"uppercase" }}>תקציב חודשי</div>
             {editingLimit ? (
               <div style={{ display:"flex", gap:6, alignItems:"center" }}>
                 <input type="number" value={limitInput} onChange={e=>setLimitInput(e.target.value)}
-                  style={{ ...IS, width:90, fontSize:15, fontWeight:700, textAlign:"center", padding:"6px 8px" }}
+                  style={{ ...IS, width:100, fontSize:16, fontWeight:500, textAlign:"center", padding:"6px 8px", background:"rgba(255,255,255,0.2)", color:"#fff", border:"none", borderBottom:"2px solid rgba(255,255,255,0.8)" }}
                   autoFocus onKeyDown={e=>e.key==="Enter"&&saveLimit()} />
                 <button className="hov" onClick={saveLimit} style={{
-                  background:C.primary, color:"#fff", border:"none", borderRadius:8,
-                  padding:"6px 10px", fontFamily:"inherit", fontWeight:700, cursor:"pointer", fontSize:12,
+                  background:"rgba(255,255,255,0.25)", color:"#fff", border:"none", borderRadius:24,
+                  padding:"7px 14px", fontWeight:500, cursor:"pointer", fontSize:12, letterSpacing:"0.5px",
                 }}>✓</button>
               </div>
             ) : (
               <button className="hov" onClick={()=>{ setLimitInput(String(monthlyLimit||"")); setEditingLimit(true); }} style={{
-                background:`${C.primary}15`, color:C.primary, border:`1.5px solid ${C.primary}30`,
-                borderRadius:10, padding:"6px 14px", fontFamily:"inherit", fontWeight:700,
-                cursor:"pointer", fontSize:15,
+                background:"rgba(255,255,255,0.18)", color:"#fff", border:"none",
+                borderRadius:24, padding:"8px 18px", fontWeight:500,
+                cursor:"pointer", fontSize:15, letterSpacing:"0.2px",
               }}>
                 {monthlyLimit > 0 ? `₪${monthlyLimit.toLocaleString()}` : "הגדר תקציב"}
               </button>
@@ -1398,17 +1449,17 @@ function BudgetTab({ budgetEntries, monthlyLimit, setMonthlyLimit, removeBudgetE
         {/* Progress bar */}
         {monthlyLimit > 0 && (
           <div>
-            <div style={{ background:C.border, borderRadius:99, height:10, overflow:"hidden" }}>
+            <div style={{ background:"rgba(255,255,255,0.25)", borderRadius:2, height:6, overflow:"hidden" }}>
               <div style={{
-                width:`${progress}%`, height:"100%", borderRadius:99,
-                background: overBudget ? C.danger : progress > 80 ? "#E67E22" : C.secondary,
-                transition:"width 0.5s ease",
+                width:`${progress}%`, height:"100%", borderRadius:2,
+                background: overBudget ? "#EF9A9A" : progress > 80 ? "#FFB74D" : "#A5D6A7",
+                transition:"width 0.6s cubic-bezier(0.4,0,0.2,1)",
               }} />
             </div>
-            <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
-              <span style={{ fontSize:11, color:C.textMuted }}>0</span>
-              <span style={{ fontSize:11, color:C.textMuted, fontWeight:700 }}>{Math.round(progress)}%</span>
-              <span style={{ fontSize:11, color:C.textMuted }}>₪{monthlyLimit.toLocaleString()}</span>
+            <div style={{ display:"flex", justifyContent:"space-between", marginTop:6 }}>
+              <span style={{ fontSize:11, color:"rgba(255,255,255,0.65)" }}>₪0</span>
+              <span style={{ fontSize:11, color:"rgba(255,255,255,0.9)", fontWeight:500 }}>{Math.round(progress)}%</span>
+              <span style={{ fontSize:11, color:"rgba(255,255,255,0.65)" }}>₪{monthlyLimit.toLocaleString()}</span>
             </div>
           </div>
         )}
@@ -1417,29 +1468,29 @@ function BudgetTab({ budgetEntries, monthlyLimit, setMonthlyLimit, removeBudgetE
       {/* History */}
       {sortedMonths.length === 0 && <EmptyState text="אין עדיין רשומות קניות 🛍️" />}
       {sortedMonths.map(month => (
-        <div key={month} style={{ marginBottom:18 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-            <span style={{ fontWeight:800, fontSize:14, color:C.text }}>{formatMonthLabel(month)}</span>
+        <div key={month} style={{ marginBottom:20 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <span style={{ fontWeight:500, fontSize:14, color:C.text, letterSpacing:"0.2px" }}>{formatMonthLabel(month)}</span>
             <span style={{ fontWeight:700, fontSize:14, color:C.primary }}>
               ₪{grouped[month].reduce((s,e)=>s+Number(e.amount),0).toLocaleString()}
             </span>
           </div>
           {grouped[month].map(entry => (
             <div key={entry.id} style={{
-              background:C.card, borderRadius:12, padding:"11px 14px", marginBottom:7,
-              boxShadow:"0 1px 6px rgba(0,0,0,0.05)", display:"flex", alignItems:"center", gap:10,
-              border:`1.5px solid ${C.border}`,
+              background:C.card, borderRadius:4, padding:"13px 16px", marginBottom:8,
+              boxShadow:C.shadow, display:"flex", alignItems:"center", gap:12,
+              borderRight:`4px solid ${C.primary}`,
             }}>
-              <span style={{ fontSize:20 }}>🛒</span>
+              <span style={{ fontSize:22 }}>🛒</span>
               <div style={{ flex:1 }}>
-                <div style={{ fontWeight:700, fontSize:14, color:C.text }}>₪{Number(entry.amount).toLocaleString()}</div>
-                {entry.note && <div style={{ fontSize:11, color:C.textMuted, marginTop:2 }}>{entry.note}</div>}
+                <div style={{ fontWeight:500, fontSize:15, color:C.text }}>₪{Number(entry.amount).toLocaleString()}</div>
+                {entry.note && <div style={{ fontSize:12, color:C.textMuted, marginTop:2 }}>{entry.note}</div>}
                 <div style={{ fontSize:11, color:C.textMuted, marginTop:2 }}>
                   {new Date(entry.created_at).toLocaleDateString("he-IL")}
                 </div>
               </div>
               <button className="hov" onClick={()=>removeBudgetEntry(entry.id)} style={{
-                background:"none", color:C.textMuted, fontSize:20, padding:4, border:"none", cursor:"pointer",
+                background:"none", color:"#BDBDBD", fontSize:22, padding:4, border:"none", cursor:"pointer",
               }}>×</button>
             </div>
           ))}
@@ -1452,23 +1503,32 @@ function BudgetTab({ budgetEntries, monthlyLimit, setMonthlyLimit, removeBudgetE
 /* ─── SHARED ─── */
 function SectionHeader({ title, icon, count, label, onAdd, addLabel }) {
   return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
         <span style={{ fontSize:22 }}>{icon}</span>
-        <h2 style={{ fontSize:20, fontWeight:900, color:C.text }}>{title}</h2>
-        {count!==undefined && (
-          <div style={{ background:C.primary, color:"#fff", borderRadius:20, padding:"2px 9px", fontSize:12, fontWeight:700 }}>
+        <h2 style={{ fontSize:22, fontWeight:500, color:C.text, letterSpacing:"0.2px" }}>{title}</h2>
+        {count !== undefined && (
+          <div style={{
+            background:C.primary, color:"#fff", borderRadius:99,
+            padding:"2px 10px", fontSize:11, fontWeight:700, letterSpacing:"0.5px",
+          }}>
             {count} {label}
           </div>
         )}
       </div>
-      <button className="hov" onClick={onAdd} style={{
-        background:C.primary, color:"#fff", border:"none", borderRadius:12, padding:"8px 15px",
-        fontFamily:"inherit", fontSize:13, fontWeight:700, cursor:"pointer",
-        display:"flex", alignItems:"center", gap:5, boxShadow:"0 3px 12px rgba(58,107,62,0.3)",
-      }}>
-        <span style={{ fontSize:17 }}>+</span> {addLabel || "הוסף"}
-      </button>
+      {onAdd && (
+        <button className="hov" onClick={onAdd} style={{
+          background:C.primary, color:"#fff", border:"none",
+          borderRadius:24, padding:"9px 20px",
+          fontSize:13, fontWeight:500, cursor:"pointer",
+          display:"flex", alignItems:"center", gap:6,
+          boxShadow:"0 3px 8px rgba(76,175,80,0.4)",
+          letterSpacing:"0.5px",
+          textTransform:"uppercase",
+        }}>
+          + {addLabel || "הוסף"}
+        </button>
+      )}
     </div>
   );
 }
@@ -1476,20 +1536,24 @@ function SectionHeader({ title, icon, count, label, onAdd, addLabel }) {
 function AddForm({ children, onAdd, onCancel }) {
   return (
     <div className="slide-in" style={{
-      background:C.card, borderRadius:16, padding:16, marginBottom:16,
-      boxShadow:"0 4px 20px rgba(58,107,62,0.14)", border:`1.5px solid ${C.primaryLight}`,
-      display:"flex", flexDirection:"column", gap:10,
+      background:C.card, borderRadius:4, padding:20, marginBottom:20,
+      boxShadow: C.shadowDeep,
+      display:"flex", flexDirection:"column", gap:12,
     }}>
       {children}
-      <div style={{ display:"flex", gap:8 }}>
-        <button className="hov" onClick={onAdd} style={{
-          flex:1, background:C.primary, color:"#fff", border:"none",
-          borderRadius:10, padding:"10px", fontFamily:"inherit", fontWeight:700, fontSize:14, cursor:"pointer",
-        }}>שמור</button>
+      <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:4 }}>
         <button className="hov" onClick={onCancel} style={{
-          background:C.border, color:C.text, border:"none",
-          borderRadius:10, padding:"10px 15px", fontFamily:"inherit", fontWeight:600, fontSize:14, cursor:"pointer",
+          background:"transparent", color:C.textMuted, border:"none",
+          padding:"9px 18px", fontWeight:500, fontSize:13, cursor:"pointer",
+          borderRadius:24, letterSpacing:"0.5px", textTransform:"uppercase",
         }}>ביטול</button>
+        <button className="hov" onClick={onAdd} style={{
+          background:C.primary, color:"#fff", border:"none",
+          borderRadius:24, padding:"9px 24px",
+          fontWeight:500, fontSize:13, cursor:"pointer",
+          boxShadow:"0 3px 8px rgba(76,175,80,0.4)",
+          letterSpacing:"0.5px", textTransform:"uppercase",
+        }}>שמור</button>
       </div>
     </div>
   );
@@ -1497,9 +1561,9 @@ function AddForm({ children, onAdd, onCancel }) {
 
 function Divider({ label }) {
   return (
-    <div style={{ margin:"18px 0 10px", display:"flex", alignItems:"center", gap:8 }}>
+    <div style={{ margin:"20px 0 12px", display:"flex", alignItems:"center", gap:10 }}>
       <div style={{ flex:1, height:1, background:C.border }} />
-      <span style={{ color:C.textMuted, fontSize:12, fontWeight:600 }}>{label}</span>
+      <span style={{ color:C.textMuted, fontSize:11, fontWeight:500, letterSpacing:"0.8px", textTransform:"uppercase" }}>{label}</span>
       <div style={{ flex:1, height:1, background:C.border }} />
     </div>
   );
@@ -1507,27 +1571,41 @@ function Divider({ label }) {
 
 function Tag({ children, color }) {
   return (
-    <span style={{ background:`${color}18`, color, fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:6 }}>
+    <span style={{ background:`${color}18`, color, fontSize:11, fontWeight:500, padding:"2px 8px", borderRadius:99, letterSpacing:"0.3px" }}>
       {children}
     </span>
   );
 }
 
 function EmptyState({ text }) {
-  return <div style={{ textAlign:"center", padding:"28px 0", color:C.textMuted, fontSize:15 }}>{text}</div>;
+  return (
+    <div style={{ textAlign:"center", padding:"36px 0", color:C.textMuted, fontSize:14, fontWeight:400, letterSpacing:"0.2px" }}>
+      {text}
+    </div>
+  );
 }
 
 function Stat({ label, value, color }) {
   return (
     <div style={{
-      background:`${color}12`, border:`1.5px solid ${color}30`,
-      borderRadius:10, padding:"6px 14px", textAlign:"center",
+      background:"rgba(255,255,255,0.18)",
+      borderRadius:4, padding:"6px 16px", textAlign:"center",
+      minWidth:64,
     }}>
-      <div style={{ fontSize:18, fontWeight:900, color }}>{value}</div>
-      <div style={{ fontSize:10, color:C.textMuted, fontWeight:600 }}>{label}</div>
+      <div style={{ fontSize:20, fontWeight:700, color: color || "#fff" }}>{value}</div>
+      <div style={{ fontSize:10, color:"rgba(255,255,255,0.8)", fontWeight:400, letterSpacing:"0.5px" }}>{label}</div>
     </div>
   );
 }
 
-const IS = { width:"100%", padding:"10px 12px", borderRadius:10, border:`1.5px solid ${C.border}`, fontSize:14, color:C.text, background:C.bg, direction:"rtl" };
-const NBS = { background:C.border, border:"none", width:32, height:32, borderRadius:8, fontSize:17, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" };
+const IS = {
+  width:"100%", padding:"10px 14px",
+  borderRadius:4, border:`1px solid ${C.border}`,
+  borderBottom:`2px solid ${C.border}`,
+  fontSize:14, color:C.text, background:C.card, direction:"rtl",
+  transition:"border-color 0.2s",
+};
+const NBS = {
+  background:C.border, border:"none", width:32, height:32, borderRadius:4,
+  fontSize:17, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer",
+};
