@@ -232,6 +232,65 @@ export default function App() {
     await supabase.from("events").delete().eq("id", id);
   }
 
+  /* ── Budget state ── */
+  const [budgetEntries, setBudgetEntries] = useState([]);
+  const [monthlyLimit, setMonthlyLimit] = useState(0);
+  const [budgetSettingsId, setBudgetSettingsId] = useState(null);
+
+  useEffect(() => {
+    async function loadBudget() {
+      const [{ data: entries }, { data: settings }] = await Promise.all([
+        supabase.from("budget_entries").select("*").order("created_at", { ascending: false }),
+        supabase.from("budget_settings").select("*").limit(1),
+      ]);
+      setBudgetEntries(entries || []);
+      if (settings && settings.length > 0) {
+        setMonthlyLimit(settings[0].monthly_limit || 0);
+        setBudgetSettingsId(settings[0].id);
+      }
+    }
+    loadBudget();
+  }, []);
+
+  useEffect(() => {
+    const channel = supabase.channel("budget-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "budget_entries" }, payload => {
+        if (payload.eventType === "INSERT") setBudgetEntries(prev => [payload.new, ...prev]);
+        if (payload.eventType === "DELETE") setBudgetEntries(prev => prev.filter(e => e.id !== payload.old.id));
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "budget_settings" }, payload => {
+        if (payload.eventType === "UPDATE") setMonthlyLimit(payload.new.monthly_limit || 0);
+        if (payload.eventType === "INSERT") { setMonthlyLimit(payload.new.monthly_limit || 0); setBudgetSettingsId(payload.new.id); }
+      })
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, []);
+
+  async function addBudgetEntry(amount, note) {
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    const tempId = Date.now();
+    const optimistic = { id: tempId, amount, note, month, created_at: now.toISOString() };
+    setBudgetEntries(prev => [optimistic, ...prev]);
+    const { data } = await supabase.from("budget_entries").insert([{ amount, note, month }]).select().single();
+    if (data) setBudgetEntries(prev => prev.map(e => e.id === tempId ? data : e));
+  }
+
+  async function removeBudgetEntry(id) {
+    setBudgetEntries(prev => prev.filter(e => e.id !== id));
+    await supabase.from("budget_entries").delete().eq("id", id);
+  }
+
+  async function saveMonthlyLimit(limit) {
+    setMonthlyLimit(limit);
+    if (budgetSettingsId) {
+      await supabase.from("budget_settings").update({ monthly_limit: limit }).eq("id", budgetSettingsId);
+    } else {
+      const { data } = await supabase.from("budget_settings").insert([{ monthly_limit: limit }]).select().single();
+      if (data) setBudgetSettingsId(data.id);
+    }
+  }
+
   const sp = {
     assignments, shopping, events, today, notify, loading, muted,
     addAssignment, toggleAssignment, removeAssignment,
@@ -242,6 +301,8 @@ export default function App() {
     showAddS, setShowAddS, newS, setNewS,
     showAddE, setShowAddE, newE, setNewE,
     setTab,
+    budgetEntries, monthlyLimit, setMonthlyLimit: saveMonthlyLimit,
+    addBudgetEntry, removeBudgetEntry,
   };
 
   const TABS = [
@@ -249,6 +310,7 @@ export default function App() {
     { key: "assignments", label: "משימות",   icon: "✅" },
     { key: "shopping",    label: "קניות",    icon: "🛒" },
     { key: "calendar",    label: "לוח שנה",  icon: "📅" },
+    { key: "budget",      label: "תקציב",    icon: "💰" },
   ];
 
   return (
@@ -462,6 +524,7 @@ export default function App() {
             {tab==="assignments" && <AssignmentsTab {...sp} />}
             {tab==="shopping"    && <ShoppingTab    {...sp} />}
             {tab==="calendar"    && <CalendarTab    {...sp} />}
+            {tab==="budget"      && <BudgetTab      {...sp} />}
           </div>
         </div>
 
@@ -804,11 +867,14 @@ const DEFAULT_QUICK_ITEMS = [
 ];
 
 function ShoppingTab({ shopping, showAddS, setShowAddS, newS, setNewS,
-  addShoppingItem, toggleShopping, removeShopping, addQuickItem }) {
+  addShoppingItem, toggleShopping, removeShopping, addQuickItem,
+  addBudgetEntry, setTab }) {
   const [quickItems, setQuickItems] = useState(DEFAULT_QUICK_ITEMS);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customItem, setCustomItem] = useState({ label:"", qty:1 });
   const [qtyPicker, setQtyPicker] = useState(null);
+  const [showFinish, setShowFinish] = useState(false);
+  const [finalAmount, setFinalAmount] = useState("");
 
   const pending  = shopping.filter(s => !s.approved);
   const approved = shopping.filter(s => s.approved);
@@ -841,6 +907,16 @@ function ShoppingTab({ shopping, showAddS, setShowAddS, newS, setNewS,
     addQuickItem(newQI);
     setCustomItem({ label:"", qty:1 });
     setShowCustomForm(false);
+  }
+
+  async function finishShopping() {
+    if (!finalAmount || isNaN(Number(finalAmount))) return;
+    const purchased = shopping.filter(s => s.approved).map(s => s.item).join(", ");
+    await addBudgetEntry(Number(finalAmount), purchased ? `קנייה: ${purchased}` : "קנייה");
+    shopping.filter(s => s.approved).forEach(s => removeShopping(s.id));
+    setFinalAmount("");
+    setShowFinish(false);
+    setTab("budget");
   }
 
   return (
@@ -936,6 +1012,62 @@ function ShoppingTab({ shopping, showAddS, setShowAddS, newS, setNewS,
           <Divider label={`נרכשו (${approved.length})`} />
           {approved.map(s => <ShopCard key={s.id} item={s} onToggle={toggle} onRemove={remove} />)}
         </>
+      )}
+
+      {/* Finish shopping button */}
+      {approved.length > 0 && (
+        <button className="hov" onClick={()=>setShowFinish(true)} style={{
+          width:"100%", marginTop:16, padding:"14px", borderRadius:14,
+          background:`linear-gradient(135deg, ${C.primary}, #1A4A1C)`,
+          color:"#fff", border:"none", fontFamily:"inherit", fontSize:15,
+          fontWeight:800, cursor:"pointer", display:"flex", alignItems:"center",
+          justifyContent:"center", gap:10,
+          boxShadow:`0 4px 18px rgba(58,107,62,0.4)`,
+        }}>
+          <span style={{ fontSize:20 }}>🛒</span>
+          סיום קנייה ({approved.length} פריטים)
+        </button>
+      )}
+
+      {/* Finish shopping modal */}
+      {showFinish && (
+        <div style={{
+          position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:500,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:20,
+        }} onClick={()=>setShowFinish(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            background:C.card, borderRadius:22, padding:28, width:"min(340px,90vw)",
+            boxShadow:"0 16px 48px rgba(0,0,0,0.25)", direction:"rtl",
+          }}>
+            <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>🛒</div>
+            <h3 style={{ fontSize:18, fontWeight:900, color:C.text, textAlign:"center", marginBottom:4 }}>סיום קנייה</h3>
+            <p style={{ fontSize:13, color:C.textMuted, textAlign:"center", marginBottom:20 }}>
+              {approved.length} פריטים נרכשו — כמה שילמת?
+            </p>
+            <div style={{ position:"relative", marginBottom:16 }}>
+              <input
+                type="number" value={finalAmount}
+                onChange={e=>setFinalAmount(e.target.value)}
+                placeholder="סכום בש״ח"
+                style={{ ...IS, fontSize:22, fontWeight:700, textAlign:"center", paddingLeft:36 }}
+                autoFocus
+              />
+              <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", fontSize:16, color:C.textMuted }}>₪</span>
+            </div>
+            <div style={{ display:"flex", gap:10 }}>
+              <button className="hov" onClick={finishShopping} style={{
+                flex:1, padding:"12px", borderRadius:12, background:C.primary,
+                color:"#fff", border:"none", fontFamily:"inherit", fontWeight:700,
+                fontSize:14, cursor:"pointer",
+              }}>שמור וסיים</button>
+              <button className="hov" onClick={()=>setShowFinish(false)} style={{
+                padding:"12px 18px", borderRadius:12, background:C.border,
+                color:C.text, border:"none", fontFamily:"inherit", fontWeight:600,
+                fontSize:14, cursor:"pointer",
+              }}>ביטול</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1177,6 +1309,142 @@ function EventCard({ event, onRemove, showDate }) {
       <button className="hov" onClick={()=>onRemove(event.id)} style={{
         background:"none", color:C.textMuted, fontSize:20, padding:4, border:"none", cursor:"pointer",
       }}>×</button>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BUDGET
+═══════════════════════════════════════════════════════════ */
+function BudgetTab({ budgetEntries, monthlyLimit, setMonthlyLimit, removeBudgetEntry }) {
+  const [editingLimit, setEditingLimit] = useState(false);
+  const [limitInput, setLimitInput] = useState(String(monthlyLimit || ""));
+
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  const MONTHS_HE_FULL = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+
+  // Group entries by month
+  const grouped = {};
+  budgetEntries.forEach(e => {
+    if (!grouped[e.month]) grouped[e.month] = [];
+    grouped[e.month].push(e);
+  });
+  const sortedMonths = Object.keys(grouped).sort((a,b) => b.localeCompare(a));
+
+  const thisMonthEntries = grouped[currentMonth] || [];
+  const thisMonthTotal = thisMonthEntries.reduce((sum, e) => sum + Number(e.amount), 0);
+  const progress = monthlyLimit > 0 ? Math.min(thisMonthTotal / monthlyLimit * 100, 100) : 0;
+  const remaining = monthlyLimit > 0 ? monthlyLimit - thisMonthTotal : null;
+  const overBudget = remaining !== null && remaining < 0;
+
+  function formatMonthLabel(monthStr) {
+    const [y, m] = monthStr.split("-");
+    return `${MONTHS_HE_FULL[parseInt(m)-1]} ${y}`;
+  }
+
+  function saveLimit() {
+    const val = Number(limitInput);
+    if (!isNaN(val) && val >= 0) setMonthlyLimit(val);
+    setEditingLimit(false);
+  }
+
+  return (
+    <div className="fade-up">
+      <SectionHeader title="תקציב חודשי" icon="💰" />
+
+      {/* Monthly summary card */}
+      <div style={{
+        background: overBudget ? "#FFF0EE" : C.card, borderRadius:18, padding:22, marginBottom:16,
+        boxShadow:"0 2px 12px rgba(0,0,0,0.07)",
+        border:`1.5px solid ${overBudget ? C.danger+"44" : C.border}`,
+      }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
+          <div>
+            <div style={{ fontSize:12, color:C.textMuted, fontWeight:600, marginBottom:3 }}>הוצאות החודש</div>
+            <div style={{ fontSize:32, fontWeight:900, color: overBudget ? C.danger : C.text }}>
+              ₪{thisMonthTotal.toLocaleString()}
+            </div>
+            {remaining !== null && (
+              <div style={{ fontSize:13, color: overBudget ? C.danger : C.secondary, fontWeight:700, marginTop:2 }}>
+                {overBudget ? `חריגה של ₪${Math.abs(remaining).toLocaleString()}` : `נותרו ₪${remaining.toLocaleString()}`}
+              </div>
+            )}
+          </div>
+          <div style={{ textAlign:"left" }}>
+            <div style={{ fontSize:12, color:C.textMuted, fontWeight:600, marginBottom:4 }}>תקציב חודשי</div>
+            {editingLimit ? (
+              <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                <input type="number" value={limitInput} onChange={e=>setLimitInput(e.target.value)}
+                  style={{ ...IS, width:90, fontSize:15, fontWeight:700, textAlign:"center", padding:"6px 8px" }}
+                  autoFocus onKeyDown={e=>e.key==="Enter"&&saveLimit()} />
+                <button className="hov" onClick={saveLimit} style={{
+                  background:C.primary, color:"#fff", border:"none", borderRadius:8,
+                  padding:"6px 10px", fontFamily:"inherit", fontWeight:700, cursor:"pointer", fontSize:12,
+                }}>✓</button>
+              </div>
+            ) : (
+              <button className="hov" onClick={()=>{ setLimitInput(String(monthlyLimit||"")); setEditingLimit(true); }} style={{
+                background:`${C.primary}15`, color:C.primary, border:`1.5px solid ${C.primary}30`,
+                borderRadius:10, padding:"6px 14px", fontFamily:"inherit", fontWeight:700,
+                cursor:"pointer", fontSize:15,
+              }}>
+                {monthlyLimit > 0 ? `₪${monthlyLimit.toLocaleString()}` : "הגדר תקציב"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        {monthlyLimit > 0 && (
+          <div>
+            <div style={{ background:C.border, borderRadius:99, height:10, overflow:"hidden" }}>
+              <div style={{
+                width:`${progress}%`, height:"100%", borderRadius:99,
+                background: overBudget ? C.danger : progress > 80 ? "#E67E22" : C.secondary,
+                transition:"width 0.5s ease",
+              }} />
+            </div>
+            <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
+              <span style={{ fontSize:11, color:C.textMuted }}>0</span>
+              <span style={{ fontSize:11, color:C.textMuted, fontWeight:700 }}>{Math.round(progress)}%</span>
+              <span style={{ fontSize:11, color:C.textMuted }}>₪{monthlyLimit.toLocaleString()}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* History */}
+      {sortedMonths.length === 0 && <EmptyState text="אין עדיין רשומות קניות 🛍️" />}
+      {sortedMonths.map(month => (
+        <div key={month} style={{ marginBottom:18 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+            <span style={{ fontWeight:800, fontSize:14, color:C.text }}>{formatMonthLabel(month)}</span>
+            <span style={{ fontWeight:700, fontSize:14, color:C.primary }}>
+              ₪{grouped[month].reduce((s,e)=>s+Number(e.amount),0).toLocaleString()}
+            </span>
+          </div>
+          {grouped[month].map(entry => (
+            <div key={entry.id} style={{
+              background:C.card, borderRadius:12, padding:"11px 14px", marginBottom:7,
+              boxShadow:"0 1px 6px rgba(0,0,0,0.05)", display:"flex", alignItems:"center", gap:10,
+              border:`1.5px solid ${C.border}`,
+            }}>
+              <span style={{ fontSize:20 }}>🛒</span>
+              <div style={{ flex:1 }}>
+                <div style={{ fontWeight:700, fontSize:14, color:C.text }}>₪{Number(entry.amount).toLocaleString()}</div>
+                {entry.note && <div style={{ fontSize:11, color:C.textMuted, marginTop:2 }}>{entry.note}</div>}
+                <div style={{ fontSize:11, color:C.textMuted, marginTop:2 }}>
+                  {new Date(entry.created_at).toLocaleDateString("he-IL")}
+                </div>
+              </div>
+              <button className="hov" onClick={()=>removeBudgetEntry(entry.id)} style={{
+                background:"none", color:C.textMuted, fontSize:20, padding:4, border:"none", cursor:"pointer",
+              }}>×</button>
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
