@@ -123,7 +123,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   const [calendarDate, setCalendarDate] = useState(today);
-  const [calView, setCalView] = useState("monthly");
+  const [calView, setCalView] = useState("upcoming");
   const [showAddA, setShowAddA] = useState(false);
   const [showAddS, setShowAddS] = useState(false);
   const [showAddE, setShowAddE] = useState(false);
@@ -498,8 +498,10 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
   const pendingShopping = shopping.filter(s => !s.approved).slice(0, 3);
   const upcomingEvents  = [...events].filter(e => e.date >= today).sort((a,b)=>a.date-b.date).slice(0, 3);
 
+  const DAYS_FULL = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
   const month = today.getMonth(), year = today.getFullYear(), day = today.getDate();
-  const dateStr = `${day} ${MONTHS_HE[month]} ${year}`;
+  const dayName = DAYS_FULL[today.getDay()];
+  const dateStr = `יום ${dayName}، ${day} ${MONTHS_HE[month]} ${year}`;
 
   function quickDone(id) { toggleAssignment(id); }
   function quickBought(id) { toggleShopping(id); }
@@ -1033,12 +1035,9 @@ function CalendarTab({ events, calendarDate, setCalendarDate, calView, setCalVie
         </AddForm>
       )}
 
-      {/* Upcoming events shown first */}
-      {calView==="upcoming" && <UpcomingList events={upcoming} removeEvent={removeEvent} />}
-
-      {/* View toggle buttons */}
+      {/* View toggle buttons - קרובים first */}
       <div style={{ display:"flex", gap:8, marginBottom:16 }}>
-        {[{key:"monthly",label:"חודשי"},{key:"upcoming",label:"קרובים"}].map(v=>(
+        {[{key:"upcoming",label:"קרובים"},{key:"monthly",label:"חודשי"}].map(v=>(
           <button key={v.key} className="hov" onClick={()=>setCalView(v.key)} style={{
             padding:"8px 20px", borderRadius:10, fontFamily:"inherit",
             background:calView===v.key?C.primary:C.card,
@@ -1049,6 +1048,7 @@ function CalendarTab({ events, calendarDate, setCalendarDate, calView, setCalVie
         ))}
       </div>
 
+      {calView==="upcoming" && <UpcomingList events={upcoming} removeEvent={removeEvent} />}
       {calView==="monthly" && (
         <MonthlyCalendar
           calendarDate={calendarDate} setCalendarDate={setCalendarDate}
