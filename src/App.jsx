@@ -21,7 +21,7 @@ const C = {
   border: "#E0E0E0",
   danger: "#F44336",
   purple: "#9C27B0",
-  headerGrad: "linear-gradient(135deg, #388E3C 0%, #1B5E20 100%)",
+  headerGrad: "linear-gradient(160deg, #11998e 0%, #38ef7d 100%)",
   shadow: "0 2px 10px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.12)",
   shadowHover: "0 8px 24px rgba(0,0,0,0.18), 0 4px 8px rgba(0,0,0,0.12)",
   shadowDeep: "0 16px 38px rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.14)",
@@ -403,13 +403,14 @@ export default function App() {
           width: calc(100vw - 260px);
         }
         .topbar {
-          background: ${C.headerGrad};
+          background: #FFFFFF;
           padding: 0 36px;
           height: 64px;
           display: flex; align-items: center; justify-content: space-between;
           position: sticky; top: 0; z-index: 50;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.10);
           width: 100%;
+          border-bottom: 1px solid #E0E0E0;
         }
         .page-body {
           padding: 24px 36px 48px;
@@ -543,17 +544,17 @@ export default function App() {
           {/* Desktop top bar */}
           <div className="topbar">
             <div>
-              <h2 style={{ fontSize:20, fontWeight:500, color:"#fff", letterSpacing:"0.3px" }}>
+              <h2 style={{ fontSize:20, fontWeight:500, color:C.text, letterSpacing:"0.3px" }}>
                 {TABS.find(t=>t.key===tab)?.icon} {TABS.find(t=>t.key===tab)?.label}
               </h2>
-              <p style={{ fontSize:12, color:"rgba(255,255,255,0.7)", marginTop:2, fontWeight:400 }}>
+              <p style={{ fontSize:12, color:C.textMuted, marginTop:2, fontWeight:400 }}>
                 {today.getDate()} {MONTHS_HE[today.getMonth()]} {today.getFullYear()}
               </p>
             </div>
             <div style={{ display:"flex", gap:10 }}>
-              <Stat label="משימות" value={sp.assignments.filter(a=>!a.approved).length} color="#fff" />
-              <Stat label="קניות"  value={sp.shopping.filter(s=>!s.approved).length}    color="#fff" />
-              <Stat label="אירועים" value={sp.events.filter(e=>e.date>=today).length}   color="#fff" />
+              <Stat label="משימות" value={sp.assignments.filter(a=>!a.approved).length} color={C.primary} />
+              <Stat label="קניות"  value={sp.shopping.filter(s=>!s.approved).length}    color="#FF9800" />
+              <Stat label="אירועים" value={sp.events.filter(e=>e.date>=today).length}   color="#9C27B0" />
             </div>
           </div>
 
@@ -1058,7 +1059,7 @@ function ShoppingTab({ shopping, showAddS, setShowAddS, newS, setNewS,
         <button className="hov" onClick={()=>setShowFinish(true)} style={{
           width:"100%", marginTop:16, padding:"14px",
           borderRadius:24,
-          background:`linear-gradient(135deg, ${C.primary}, ${C.primaryDark})`,
+          background: C.headerGrad,
           color:"#fff", border:"none", fontSize:14,
           fontWeight:500, cursor:"pointer", display:"flex", alignItems:"center",
           justifyContent:"center", gap:10,
@@ -1588,12 +1589,12 @@ function EmptyState({ text }) {
 function Stat({ label, value, color }) {
   return (
     <div style={{
-      background:"rgba(255,255,255,0.18)",
-      borderRadius:4, padding:"6px 16px", textAlign:"center",
-      minWidth:64,
+      background:`${color}15`,
+      borderRadius:99, padding:"6px 16px", textAlign:"center",
+      minWidth:64, display:"flex", alignItems:"center", gap:6,
     }}>
-      <div style={{ fontSize:20, fontWeight:700, color: color || "#fff" }}>{value}</div>
-      <div style={{ fontSize:10, color:"rgba(255,255,255,0.8)", fontWeight:400, letterSpacing:"0.5px" }}>{label}</div>
+      <div style={{ fontSize:18, fontWeight:700, color }}>{value}</div>
+      <div style={{ fontSize:11, color, fontWeight:500, opacity:0.8, letterSpacing:"0.3px" }}>{label}</div>
     </div>
   );
 }
