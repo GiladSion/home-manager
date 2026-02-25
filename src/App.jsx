@@ -747,11 +747,110 @@ function EmptyMsg({ text }) {
 /* ═══════════════════════════════════════════════════════════
    ASSIGNMENTS
 ═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   DRAG & DROP HOOK — pointer events, works desktop + mobile
+═══════════════════════════════════════════════════════════ */
+function useDragSort(initialItems) {
+  const [items, setItems] = useState(initialItems);
+  const [dragIdx, setDragIdx] = useState(null);
+  const [overIdx, setOverIdx] = useState(null);
+  const dragNode = useRef(null);
+  const frameRef = useRef(null);
+
+  // Sync when external items change (DB updates etc)
+  useEffect(() => { setItems(initialItems); }, [JSON.stringify(initialItems.map(i=>i.id))]);
+
+  function handleDragStart(e, idx) {
+    setDragIdx(idx);
+    setOverIdx(idx);
+    dragNode.current = e.currentTarget;
+    dragNode.current.style.opacity = "0.4";
+    e.dataTransfer && (e.dataTransfer.effectAllowed = "move");
+  }
+  function handleDragEnter(idx) {
+    if (idx === dragIdx) return;
+    setOverIdx(idx);
+    setItems(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIdx, 1);
+      next.splice(idx, 0, moved);
+      return next;
+    });
+    setDragIdx(idx);
+  }
+  function handleDragEnd() {
+    if (dragNode.current) dragNode.current.style.opacity = "1";
+    dragNode.current = null;
+    setDragIdx(null);
+    setOverIdx(null);
+  }
+
+  // Touch/pointer support
+  function handlePointerDown(e, idx) {
+    if (e.pointerType === "mouse") return; // mouse uses drag events
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragIdx(idx);
+    dragNode.current = e.currentTarget;
+    dragNode.current.style.opacity = "0.4";
+    dragNode.current.style.transform = "scale(1.02)";
+  }
+  function handlePointerMove(e, idx) {
+    if (dragIdx === null || dragIdx === undefined) return;
+    if (frameRef.current) cancelAnimationFrame(frameRef.current);
+    frameRef.current = requestAnimationFrame(() => {
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const card = el?.closest("[data-drag-idx]");
+      if (!card) return;
+      const targetIdx = parseInt(card.dataset.dragIdx);
+      if (isNaN(targetIdx) || targetIdx === dragIdx) return;
+      setItems(prev => {
+        const next = [...prev];
+        const [moved] = next.splice(dragIdx, 1);
+        next.splice(targetIdx, 0, moved);
+        return next;
+      });
+      setDragIdx(targetIdx);
+    });
+  }
+  function handlePointerUp(e) {
+    if (dragNode.current) {
+      dragNode.current.style.opacity = "1";
+      dragNode.current.style.transform = "";
+    }
+    dragNode.current = null;
+    setDragIdx(null);
+    setOverIdx(null);
+  }
+
+  function getDragProps(idx) {
+    return {
+      "data-drag-idx": idx,
+      draggable: true,
+      onDragStart: e => handleDragStart(e, idx),
+      onDragEnter: () => handleDragEnter(idx),
+      onDragEnd: handleDragEnd,
+      onDragOver: e => e.preventDefault(),
+      onPointerDown: e => handlePointerDown(e, idx),
+      onPointerMove: e => handlePointerMove(e, idx),
+      onPointerUp: handlePointerUp,
+      style: {
+        cursor: "grab",
+        transition: "transform 0.15s ease, box-shadow 0.15s ease",
+        touchAction: "none",
+      }
+    };
+  }
+
+  return { items, dragIdx, getDragProps };
+}
+
 function AssignmentsTab({ assignments, showAddA, setShowAddA, newA, setNewA, notify,
   addAssignment, toggleAssignment, removeAssignment }) {
   const urgOrder = { high:0, medium:1, low:2 };
-  const pending  = [...assignments.filter(a => !a.approved)].sort((a,b)=>urgOrder[a.urgency]-urgOrder[b.urgency]);
+  const pendingRaw = [...assignments.filter(a => !a.approved)].sort((a,b)=>urgOrder[a.urgency]-urgOrder[b.urgency]);
   const approved = assignments.filter(a => a.approved);
+
+  const { items: pending, dragIdx: aDragIdx, getDragProps: getADragProps } = useDragSort(pendingRaw);
 
   function toggle(id) { toggleAssignment(id); }
   function remove(id) { removeAssignment(id); }
@@ -796,7 +895,15 @@ function AssignmentsTab({ assignments, showAddA, setShowAddA, newA, setNewA, not
       )}
 
       {pending.length===0 && <EmptyState text="כל המשימות הושלמו! 🎉" />}
-      {pending.map((a,i) => <AssignCard key={a.id} item={a} onToggle={toggle} onRemove={remove} delay={i*0.05} />)}
+      {pending.map((a,i) => (
+        <div key={a.id} {...getADragProps(i)} style={{
+          ...getADragProps(i).style,
+          boxShadow: aDragIdx===i ? "0 8px 24px rgba(0,0,0,0.2)" : "none",
+          zIndex: aDragIdx===i ? 10 : 1, position:"relative",
+        }}>
+          <AssignCard item={a} onToggle={toggle} onRemove={remove} delay={0} showHandle />
+        </div>
+      ))}
 
       {approved.length > 0 && (
         <>
@@ -808,7 +915,7 @@ function AssignmentsTab({ assignments, showAddA, setShowAddA, newA, setNewA, not
   );
 }
 
-function AssignCard({ item, onToggle, onRemove, delay=0 }) {
+function AssignCard({ item, onToggle, onRemove, delay=0, showHandle=false }) {
   const u = URGENCY[item.urgency] || URGENCY.medium;
   return (
     <div className="chov" style={{
@@ -817,8 +924,24 @@ function AssignCard({ item, onToggle, onRemove, delay=0 }) {
       display:"flex", alignItems:"center", gap:12,
       opacity: item.approved ? 0.55 : 1,
       borderRight:`4px solid ${item.approved ? "#BDBDBD" : u.color}`,
-      animation:`fadeUp 0.3s ${delay}s cubic-bezier(0.4,0,0.2,1) both`,
+      animation: delay ? `fadeUp 0.3s ${delay}s cubic-bezier(0.4,0,0.2,1) both` : "none",
     }}>
+      {showHandle && (
+        <div style={{ color:"#BDBDBD", fontSize:16, flexShrink:0, display:"flex", flexDirection:"column", gap:2, paddingLeft:2, cursor:"grab" }}>
+          <div style={{ display:"flex", gap:2 }}>
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+          </div>
+          <div style={{ display:"flex", gap:2 }}>
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+          </div>
+          <div style={{ display:"flex", gap:2 }}>
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+          </div>
+        </div>
+      )}
       <button className="hov" onClick={()=>onToggle(item.id)} style={{
         width:27, height:27, minWidth:27, maxWidth:27, borderRadius:"50%",
         background: item.approved ? C.primary : "transparent",
@@ -916,9 +1039,11 @@ function ShoppingTab({ shopping, showAddS, setShowAddS, newS, setNewS,
   const [showFinish, setShowFinish] = useState(false);
   const [finalAmount, setFinalAmount] = useState("");
 
-  const pending  = shopping.filter(s => !s.approved);
+  const pendingRaw = shopping.filter(s => !s.approved);
   const approved = shopping.filter(s => s.approved);
-  const activeLabels = new Set(pending.map(s => s.item));
+  const activeLabels = new Set(pendingRaw.map(s => s.item));
+
+  const { items: pending, dragIdx: sDragIdx, getDragProps: getSDragProps } = useDragSort(pendingRaw);
 
   function toggle(id) { toggleShopping(id); }
   function remove(id) { removeShopping(id); }
@@ -1045,7 +1170,15 @@ function ShoppingTab({ shopping, showAddS, setShowAddS, newS, setNewS,
       <Divider label="רשימת הקניות" />
 
       {pending.length===0 && <EmptyState text="הרשימה ריקה — בחר פריטים למעלה 🛍️" />}
-      {pending.map((s,i) => <ShopCard key={s.id} item={s} onToggle={toggle} onRemove={remove} delay={i*0.05} />)}
+      {pending.map((s,i) => (
+        <div key={s.id} {...getSDragProps(i)} style={{
+          ...getSDragProps(i).style,
+          boxShadow: sDragIdx===i ? "0 8px 24px rgba(0,0,0,0.2)" : "none",
+          zIndex: sDragIdx===i ? 10 : 1, position:"relative",
+        }}>
+          <ShopCard item={s} onToggle={toggle} onRemove={remove} showHandle />
+        </div>
+      ))}
 
       {approved.length > 0 && (
         <>
@@ -1141,14 +1274,30 @@ function QtySelector({ qty, onChange, large }) {
   );
 }
 
-function ShopCard({ item, onToggle, onRemove, delay=0 }) {
+function ShopCard({ item, onToggle, onRemove, delay=0, showHandle=false }) {
   return (
     <div className="chov" style={{
       background:C.card, borderRadius:4, padding:"13px 16px", marginBottom:8,
       boxShadow: C.shadow, display:"flex", alignItems:"center", gap:12,
       opacity:item.approved ? 0.55 : 1,
-      animation:`fadeUp 0.3s ${delay}s cubic-bezier(0.4,0,0.2,1) both`,
+      animation: delay ? `fadeUp 0.3s ${delay}s cubic-bezier(0.4,0,0.2,1) both` : "none",
     }}>
+      {showHandle && (
+        <div style={{ flexShrink:0, display:"flex", flexDirection:"column", gap:2, paddingLeft:2, cursor:"grab" }}>
+          <div style={{ display:"flex", gap:2 }}>
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+          </div>
+          <div style={{ display:"flex", gap:2 }}>
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+          </div>
+          <div style={{ display:"flex", gap:2 }}>
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+            <div style={{ width:3, height:3, borderRadius:"50%", background:"#BDBDBD" }} />
+          </div>
+        </div>
+      )}
       <button className="hov" onClick={()=>onToggle(item.id)} style={{
         width:27, height:27, minWidth:27, maxWidth:27, borderRadius:3,
         background:item.approved ? C.primary : "transparent",
