@@ -28,9 +28,9 @@ const C = {
 };
 
 const URGENCY = {
-  high:   { label: "דחוף",  color: "#8B2500", bg: "#FDECEA", icon: "🔴" },
-  medium: { label: "בינוני", color: "#B8862A", bg: "#FDF6E3", icon: "🟡" },
-  low:    { label: "נמוך",  color: "#3A6B3E", bg: "#EDF4EE", icon: "🟢" },
+  high:   { label: "דחוף",   color: "#E53935", bg: "#FFEBEE", icon: "🔴" },
+  medium: { label: "בינוני", color: "#F57C00", bg: "#FFF3E0", icon: "🟡" },
+  low:    { label: "נמוך",   color: "#2E7D32", bg: "#E8F5E9", icon: "🟢" },
 };
 
 const CATEGORY_COLORS = {
@@ -479,12 +479,12 @@ export default function App() {
                   width:"100%", padding:"14px 24px",
                   background:"transparent",
                   border:"none",
-                  color: tab===t.key ? "#fff" : "rgba(255,255,255,0.6)",
+                  color: tab===t.key ? "#fff" : "rgba(255,255,255,0.88)",
                   fontSize:14, fontWeight: tab===t.key ? 700 : 400,
                   cursor:"pointer", display:"flex", alignItems:"center", gap:16, textAlign:"right",
                   letterSpacing:"0.2px",
                 }}>
-                <span style={{ fontSize:20, flexShrink:0, opacity: tab===t.key ? 1 : 0.7 }}>{t.icon}</span>
+                <span style={{ fontSize:20, flexShrink:0, opacity: tab===t.key ? 1 : 0.95 }}>{t.icon}</span>
                 <span>{t.label}</span>
               </button>
             ))}
@@ -629,7 +629,7 @@ function HomeTab({ assignments, shopping, events, today, notify, setTab, toggleA
             <div key={a.id} style={{
               background: C.card, borderRadius:4, padding:"12px 14px", marginBottom:8,
               boxShadow: C.shadow, display:"flex", alignItems:"center", gap:10,
-              borderRight:`4px solid ${URGENCY[a.urgency].color}`,
+              borderRight:`5px solid ${URGENCY[a.urgency].color}`,
               animation:`fadeUp 0.3s ${i*0.07}s cubic-bezier(0.4,0,0.2,1) both`,
             }}>
               <button className="hov" onClick={() => quickDone(a.id)} style={{
@@ -724,7 +724,7 @@ function DashSection({ title, icon, children, onNav, navLabel }) {
           padding:"4px 8px",
         }}>{navLabel}</button>
       </div>
-      <div style={{ background:C.card, borderRadius:4, padding:"8px 8px 0", boxShadow:C.shadow }}>
+      <div style={{ borderRadius:4 }}>
         {children}
       </div>
     </div>
@@ -916,7 +916,7 @@ function AssignCard({ item, onToggle, onRemove, delay=0, showHandle=false }) {
       boxShadow: C.shadow,
       display:"flex", alignItems:"center", gap:12,
       opacity: item.approved ? 0.55 : 1,
-      borderRight:`4px solid ${item.approved ? "#BDBDBD" : u.color}`,
+      borderRight:`5px solid ${item.approved ? "#BDBDBD" : u.color}`,
       animation: delay ? `fadeUp 0.3s ${delay}s cubic-bezier(0.4,0,0.2,1) both` : "none",
     }}>
       {showHandle && (
