@@ -330,7 +330,7 @@ export default function App() {
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: C.bg, fontFamily: "'Heebo','Assistant',sans-serif", direction: "rtl" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Heebo:wght@300;400;500;600;700;800;900&family=Pacifico&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #EEEEEE; }
         input, select { outline: none; font-family: Roboto, Heebo, sans-serif; }
@@ -460,16 +460,15 @@ export default function App() {
         {/* ══ SIDEBAR (desktop) ══ */}
         <aside className="sidebar">
           <div className="sidebar-logo">
-            <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:6 }}>
+            <div style={{ textAlign:"center", padding:"8px 0 4px" }}>
               <div style={{
-                width:42, height:42, borderRadius:"50%", background:"rgba(255,255,255,0.18)",
-                display:"flex", alignItems:"center", justifyContent:"center", fontSize:22,
-                boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
-              }}>🏡</div>
-              <div>
-                <div style={{ color:"#fff", fontSize:18, fontWeight:700, letterSpacing:"0.3px" }}>בית חכם</div>
-                <div style={{ color:"rgba(255,255,255,0.6)", fontSize:11, fontWeight:400 }}>ניהול משק הבית</div>
-              </div>
+                fontFamily:"'Pacifico', cursive",
+                fontSize:42, color:"#fff",
+                letterSpacing:"1px",
+                textShadow:"0 2px 12px rgba(0,0,0,0.15)",
+                lineHeight:1.1,
+              }}>Sion</div>
+              <div style={{ color:"rgba(255,255,255,0.55)", fontSize:11, fontWeight:400, marginTop:4, letterSpacing:"1.5px", textTransform:"uppercase" }}>ניהול משק הבית</div>
             </div>
           </div>
 
@@ -519,14 +518,8 @@ export default function App() {
           }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <div style={{
-                  width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.2)",
-                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:18,
-                }}>🏡</div>
-                <div>
-                  <div style={{ color:"#fff", fontSize:17, fontWeight:700 }}>בית חכם</div>
-                  <div style={{ color:"rgba(255,255,255,0.65)", fontSize:11 }}>ניהול משק הבית</div>
-                </div>
+                <div style={{ fontFamily:"'Pacifico', cursive", fontSize:28, color:"#fff", textShadow:"0 2px 8px rgba(0,0,0,0.15)" }}>Sion</div>
+                <div style={{ color:"rgba(255,255,255,0.65)", fontSize:11, letterSpacing:"1px", textTransform:"uppercase", marginTop:2 }}>ניהול משק הבית</div>
               </div>
               <button className="hov" onClick={requestPermission} style={{
                 background:"rgba(255,255,255,0.15)", border:"none",
