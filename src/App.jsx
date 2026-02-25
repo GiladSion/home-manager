@@ -127,7 +127,8 @@ function ToastContainer({ toasts }) {
    ROOT
 ═══════════════════════════════════════════════════════════ */
 export default function App() {
-  const today = new Date();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // midnight = start of today
   const [tab, setTab] = useState("home");
   const { permission, muted, requestPermission, notify, toasts } = useNotifications();
 
